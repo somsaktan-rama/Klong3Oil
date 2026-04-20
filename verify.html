@@ -10,17 +10,20 @@
     select { padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; width: 350px; }
     .main-container { display: flex; gap: 15px; flex: 1; overflow: hidden; }
     
-    /* ฝั่งซ้าย: รูปภาพ (ย้ายมาแล้ว) */
+    /* ฝั่งซ้าย: รูปภาพ (แก้เป็น iframe พรีวิว) */
     .image-panel { flex: 4; background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
-    .image-panel img { max-width: 100%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; }
+    .image-panel iframe { width: 100%; height: 80vh; border: none; border-radius: 4px; background: #f9f9f9; }
     
-    /* ฝั่งขวา: ข้อมูลตาราง (ย้ายมาแล้ว) */
+    /* ฝั่งขวา: ข้อมูลตาราง */
     .data-panel { flex: 6; background: white; border-radius: 8px; padding: 15px; overflow-y: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.9em; }
     th { background: #1a73e8; color: white; position: sticky; top: 0; }
-    input[type="number"] { width: 90px; padding: 5px; text-align: right; border: 1px solid #1a73e8; border-radius: 4px; font-weight: bold; }
+    
+    /* แก้ไขความกว้างช่องกรอกตัวเลขตรงนี้ (ขยายเป็น 140px) */
+    input[type="number"] { width: 140px; padding: 8px; text-align: right; border: 1px solid #1a73e8; border-radius: 4px; font-weight: bold; font-size: 1.05em; }
+    
     .summary-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px;}
     .sum-item { background: white; padding: 10px; border-radius: 4px; font-weight: bold; text-align: center; border-left: 4px solid #1a73e8;}
@@ -48,7 +51,7 @@
   <div class="main-container">
     <div class="image-panel">
       <b>📸 รูปบิลอ้างอิง</b>
-      <img id="billImage" src="" style="display:none; margin-top:15px;" alt="กำลังโหลดรูปภาพ...">
+      <iframe id="billImageFrame" src="" style="display:none; margin-top:15px;"></iframe>
       <div id="noImageText" style="margin-top: 50px; color: gray;">ไม่พบรูปภาพ (โปรดตรวจสอบสิทธิ์แชร์ Drive)</div>
     </div>
 
@@ -104,16 +107,27 @@
           currentConfig = result.data;
           renderTable();
           
-          const img = document.getElementById('billImage');
+          // ระบบแสดงรูปภาพแบบใหม่ (iframe preview ของ Google Drive)
+          const iframe = document.getElementById('billImageFrame');
           const txt = document.getElementById('noImageText');
+          
           if (currentConfig.imageUrl) {
-            img.src = currentConfig.imageUrl;
-            img.style.display = 'block';
-            txt.style.display = 'none';
+            // ดึงเฉพาะ ID 25-33 ตัวอักษรออกมาจาก URL ที่ Backend ส่งมา
+            let matchId = currentConfig.imageUrl.match(/[-\w]{25,}/);
+            if (matchId) {
+              // สร้างลิงก์ Preview ที่เสถียรที่สุด
+              iframe.src = "https://drive.google.com/file/d/" + matchId[0] + "/preview";
+              iframe.style.display = 'block';
+              txt.style.display = 'none';
+            } else {
+              iframe.style.display = 'none';
+              txt.style.display = 'block';
+            }
           } else {
-            img.style.display = 'none';
+            iframe.style.display = 'none';
             txt.style.display = 'block';
           }
+          
           document.getElementById('btnSave').disabled = false;
         }
       } catch(e) { alert("ดึงข้อมูลไม่สำเร็จ"); }
@@ -198,7 +212,7 @@
       document.getElementById('shiftSelector').value = "";
       document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">ยังไม่ได้เลือกรายการ</td></tr>';
       document.getElementById('summaryGrid').innerHTML = 'กรุณาเลือกรายการด้านบน';
-      document.getElementById('billImage').style.display = 'none';
+      document.getElementById('billImageFrame').style.display = 'none';
       document.getElementById('noImageText').style.display = 'block';
       document.getElementById('btnSave').disabled = true;
       selectedRowId = null;
