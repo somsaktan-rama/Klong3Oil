@@ -9,13 +9,18 @@
     .header-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; }
     select { padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; width: 350px; }
     .main-container { display: flex; gap: 15px; flex: 1; overflow: hidden; }
+    
+    /* ฝั่งซ้าย: รูปภาพ (ย้ายมาแล้ว) */
+    .image-panel { flex: 4; background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+    .image-panel img { max-width: 100%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; }
+    
+    /* ฝั่งขวา: ข้อมูลตาราง (ย้ายมาแล้ว) */
     .data-panel { flex: 6; background: white; border-radius: 8px; padding: 15px; overflow-y: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+    
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.9em; }
     th { background: #1a73e8; color: white; position: sticky; top: 0; }
     input[type="number"] { width: 90px; padding: 5px; text-align: right; border: 1px solid #1a73e8; border-radius: 4px; font-weight: bold; }
-    .image-panel { flex: 4; background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
-    .image-panel img { max-width: 100%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; }
     .summary-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px;}
     .sum-item { background: white; padding: 10px; border-radius: 4px; font-weight: bold; text-align: center; border-left: 4px solid #1a73e8;}
@@ -41,9 +46,15 @@
   </div>
 
   <div class="main-container">
+    <div class="image-panel">
+      <b>📸 รูปบิลอ้างอิง</b>
+      <img id="billImage" src="" style="display:none; margin-top:15px;" alt="กำลังโหลดรูปภาพ...">
+      <div id="noImageText" style="margin-top: 50px; color: gray;">ไม่พบรูปภาพ (โปรดตรวจสอบสิทธิ์แชร์ Drive)</div>
+    </div>
+
     <div class="data-panel">
       <div class="summary-box">
-        <b>📊 สรุปยอดใช้งาน (รวมผลต่างตามชนิดน้ำมัน)</b>
+        <b>📊 สรุปยอดใช้งาน (รวมผลต่างตามกลุ่ม Header แถว 3)</b>
         <div id="summaryGrid" class="summary-grid">กรุณาเลือกรายการด้านบน</div>
       </div>
       <div style="overflow-y: auto; flex:1;">
@@ -55,16 +66,10 @@
         </table>
       </div>
     </div>
-
-    <div class="image-panel">
-      <b>📸 รูปบิลอ้างอิง</b>
-      <img id="billImage" src="" style="display:none; margin-top:15px;" alt="Image">
-      <div id="noImageText" style="margin-top: 50px; color: gray;">ไม่พบรูปภาพ</div>
-    </div>
   </div>
 
   <script>
-    // ⚠️ นำ Web App URL ของคุณมาใส่ตรงนี้ให้เหมือนไฟล์ index.html
+    // ⚠️ นำ Web App URL ของคุณมาใส่ตรงนี้
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec"; 
 
     let currentConfig = null;
