@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ตรวจสอบบิล Klong3Oil</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 15px; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    select { padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; width: 350px; }
+    .main-container { display: flex; gap: 15px; flex: 1; overflow: hidden; }
+    .data-panel { flex: 6; background: white; border-radius: 8px; padding: 15px; overflow-y: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.9em; }
+    th { background: #1a73e8; color: white; position: sticky; top: 0; }
+    input[type="number"] { width: 90px; padding: 5px; text-align: right; border: 1px solid #1a73e8; border-radius: 4px; font-weight: bold; }
+    .image-panel { flex: 4; background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+    .image-panel img { max-width: 100%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; }
+    .summary-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px;}
+    .sum-item { background: white; padding: 10px; border-radius: 4px; font-weight: bold; text-align: center; border-left: 4px solid #1a73e8;}
+    .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+    .btn-save { background: #28a745; color: white; }
+    .btn-cancel { background: #dc3545; color: white; }
+    .nav-link { color: #555; text-decoration: none; font-weight: bold; margin-right: 20px; }
+  </style>
+</head>
+<body>
+
+  <div class="header-bar">
+    <div>
+      <a href="index.html" class="nav-link">🏠 กลับหน้าอัปโหลด</a>
+      <select id="shiftSelector" onchange="loadData()">
+        <option value="">-- กำลังโหลดรายการ... --</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-cancel" onclick="cancelEdit()">ยกเลิก</button>
+      <button class="btn btn-save" onclick="saveData()" id="btnSave" disabled>💾 บันทึก</button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="data-panel">
+      <div class="summary-box">
+        <b>📊 สรุปยอดใช้งาน (รวมผลต่างตามกลุ่ม Header แถว 3)</b>
+        <div id="summaryGrid" class="summary-grid">กรุณาเลือกรายการด้านบน</div>
+      </div>
+      <div style="overflow-y: auto; flex:1;">
+        <table>
+          <thead>
+            <tr><th>ลำดับ (H1)</th><th>รายการ (H2)</th><th>กลุ่ม (H3)</th><th>กะก่อนหน้า</th><th>กะปัจจุบัน (แก้ไข)</th><th>ผลต่าง</th></tr>
+          </thead>
+          <tbody id="tableBody"><tr><td colspan="6">ยังไม่ได้เลือกรายการ</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="image-panel">
+      <b>📸 รูปบิลอ้างอิง</b>
+      <img id="billImage" src="" style="display:none; margin-top:15px;" alt="Image">
+      <div id="noImageText" style="margin-top: 50px; color: gray;">ไม่พบรูปภาพ</div>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ นำ Web App URL ของคุณมาใส่ตรงนี้ให้เหมือนไฟล์ index.html
+    const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec"; 
+
+    let currentConfig = null;
+    let selectedRowId = null;
+
+    window.onload = async function() {
+      try {
+        const response = await fetch(API_URL + "?action=getShiftList");
+        const result = await response.json();
+        if (result.status === "success") {
+          const sel = document.getElementById('shiftSelector');
+          sel.innerHTML = '<option value="">-- เลือกรายการ --</option>';
+          result.data.forEach(item => {
+            sel.innerHTML += `<option value="${item.rowId}">${item.display}</option>`;
+          });
+        }
+      } catch(e) { alert("เชื่อมต่อ Backend ไม่สำเร็จ"); }
+    };
+
+    async function loadData() {
+      selectedRowId = document.getElementById('shiftSelector').value;
+      if (!selectedRowId) { cancelEdit(); return; }
+      
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">กำลังโหลดข้อมูล...</td></tr>';
+      document.getElementById('btnSave').disabled = true;
+
+      try {
+        const response = await fetch(API_URL + "?action=getVerificationData&rowId=" + selectedRowId);
+        const result = await response.json();
+        
+        if (result.status === "success") {
+          currentConfig = result.data;
+          renderTable();
+          
+          const img = document.getElementById('billImage');
+          const txt = document.getElementById('noImageText');
+          if (currentConfig.imageUrl) {
+            img.src = currentConfig.imageUrl;
+            img.style.display = 'block';
+            txt.style.display = 'none';
+          } else {
+            img.style.display = 'none';
+            txt.style.display = 'block';
+          }
+          document.getElementById('btnSave').disabled = false;
+        }
+      } catch(e) { alert("ดึงข้อมูลไม่สำเร็จ"); }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      for (let i = 0; i < 36; i++) {
+        let h1 = currentConfig.headers.h1[i] || "-";
+        let h2 = currentConfig.headers.h2[i] || "-";
+        let h3 = currentConfig.headers.h3[i] || "-";
+        let prev = parseFloat(currentConfig.prevData[i]) || 0;
+        let curr = currentConfig.currData[i] !== "" ? parseFloat(currentConfig.currData[i]) : 0;
+        
+        tbody.innerHTML += `<tr>
+          <td>${h1}</td><td>${h2}</td><td id="group_${i}">${h3}</td><td id="prev_${i}">${prev}</td>
+          <td><input type="number" step="any" id="curr_${i}" value="${curr}" oninput="calculate()"></td>
+          <td id="diff_${i}" style="font-weight:bold; color: #1a73e8;">0</td>
+        </tr>`;
+      }
+      calculate();
+    }
+
+    function calculate() {
+      let groupTotals = {};
+      for (let i = 0; i < 36; i++) {
+        let prev = parseFloat(document.getElementById('prev_'+i).innerText) || 0;
+        let curr = parseFloat(document.getElementById('curr_'+i).value) || 0;
+        let diff = Math.max(0, curr - prev);
+        
+        document.getElementById('diff_'+i).innerText = diff.toLocaleString(undefined, {minimumFractionDigits: 3});
+        
+        let groupName = document.getElementById('group_'+i).innerText;
+        if (groupName !== "-" && groupName !== "") {
+          if (!groupTotals[groupName]) groupTotals[groupName] = 0;
+          groupTotals[groupName] += diff;
+        }
+      }
+
+      const summaryGrid = document.getElementById('summaryGrid');
+      summaryGrid.innerHTML = '';
+      for (const [group, total] of Object.entries(groupTotals)) {
+        summaryGrid.innerHTML += `<div class="sum-item">${group}<br><span style="color:#28a745">${total.toLocaleString(undefined, {minimumFractionDigits: 3})}</span></div>`;
+      }
+    }
+
+    async function saveData() {
+      if (!selectedRowId) return;
+      const btn = document.getElementById('btnSave');
+      btn.disabled = true;
+      btn.innerText = '⏳ บันทึก...';
+      
+      let updatedVolumes = [];
+      for (let i = 0; i < 36; i++) {
+        let val = document.getElementById('curr_'+i).value;
+        updatedVolumes.push(val === "" ? "" : parseFloat(val));
+      }
+
+      const payload = { action: "saveEditedData", rowId: selectedRowId, volumes: updatedVolumes };
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        
+        if (result.status === "success") {
+          alert("✅ " + result.message);
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (e) { alert("เชื่อมต่อ Backend ไม่สำเร็จ"); }
+      
+      btn.disabled = false;
+      btn.innerText = '💾 บันทึก';
+    }
+
+    function cancelEdit() {
+      document.getElementById('shiftSelector').value = "";
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">ยังไม่ได้เลือกรายการ</td></tr>';
+      document.getElementById('summaryGrid').innerHTML = 'กรุณาเลือกรายการด้านบน';
+      document.getElementById('billImage').style.display = 'none';
+      document.getElementById('noImageText').style.display = 'block';
+      document.getElementById('btnSave').disabled = true;
+      selectedRowId = null;
+    }
+  </script>
+</body>
+</html>
