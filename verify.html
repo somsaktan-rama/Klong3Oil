@@ -240,4 +240,19 @@
         alert("❌ เชื่อมต่อล้มเหลว");
       }
       
-      btn.
+      btn.disabled = false; btn.innerText = '💾 บันทึก';
+    }
+
+    function cancelEdit() {
+      document.getElementById('shiftSelector').value = "";
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6"></td></tr>';
+      document.getElementById('sumBody').innerHTML = '';
+      document.getElementById('grandTotal').innerText = '0.00';
+      document.getElementById('billFrame').style.display = 'none';
+      document.getElementById('noImg').style.display = 'block';
+      document.getElementById('btnSave').disabled = true;
+      current = null;
+    }
+  </script>
+</body>
+</html>
