@@ -24,4 +24,115 @@
 </head>
 <body>
   <div class="container">
-    <h2 style="text-align: center;">?
+    <h2 style="text-align: center;">📸 ถ่ายรูป/อัปโหลดบิลตัดยอด</h2>
+    
+    <div class="price-box" id="priceContainer">
+      <div style="text-align:center; color: gray;">⏳ กำลังโหลดราคาน้ำมันกะล่าสุด...</div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" style="width: 100%; padding: 10px 0; margin-top: 10px;">
+    <div class="img-container" id="cropArea"><img id="image" src=""></div>
+    
+    <div class="overwrite-box" id="overwriteContainer">
+      <label class="overwrite-label">
+        <input type="checkbox" id="overwriteCheck" style="width:18px; height:18px;"> 
+        ⚠️ บันทึกทับแถวเดิมหากตรวจพบว่าวัน-เวลาซ้ำ
+      </label>
+    </div>
+
+    <button id="btnProcess" style="display:none;" onclick="processImage()">✂️ ยืนยันการ Crop และส่งให้อ่านค่า</button>
+    <div id="status" style="margin-top: 15px; text-align: center; font-weight: bold; font-size: 16px;"></div>
+    
+    <hr style="margin-top: 25px; border: 0; border-top: 1px solid #ddd;">
+    <a href="verify.html" class="nav-link">👉 ไปที่หน้าจอตรวจสอบและแก้ไขบิล</a>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <script>
+    // ⚠️ นำ Web App URL ของคุณมาใส่ตรงนี้
+    const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec"; 
+
+    window.onload = async function() {
+      try {
+        const response = await fetch(API_URL + "?action=getInitialSetup");
+        const result = await response.json();
+        if(result.status === "success") {
+          const container = document.getElementById('priceContainer');
+          let html = '<h4 style="margin:0 0 10px 0; color:#1a73e8;">💰 ตั้งราคาขาย (ดึงจากกะล่าสุดอัตโนมัติ)</h4>';
+          if(result.data.groups.length === 0) {
+            html += '<div style="color:red; font-size:14px;">ไม่พบรายการน้ำมัน โปรดเช็ก Header H3 ใน Sheet</div>';
+          } else {
+            html += '<div class="price-grid">';
+            result.data.groups.forEach(group => {
+              let price = result.data.lastPrices[group] || ""; 
+              // 💡 เพิ่ม inputmode="decimal" ตรงนี้
+              html += `<div class="price-item"><label>${group}</label><input type="number" step="any" inputmode="decimal" class="price-input" data-group="${group}" value="${price}"></div>`;
+            });
+            html += '</div>';
+          }
+          container.innerHTML = html;
+        }
+      } catch(e) {
+        document.getElementById('priceContainer').innerHTML = "<div style='color:red;'>ดึงราคาไม่สำเร็จ</div>";
+      }
+    };
+
+    let cropper;
+    const image = document.getElementById('image');
+    
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+      if (e.target.files && e.target.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          image.src = event.target.result;
+          document.getElementById('cropArea').style.display = 'block';
+          document.getElementById('btnProcess').style.display = 'block';
+          document.getElementById('overwriteContainer').style.display = 'block'; 
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(image, { viewMode: 2, autoCropArea: 1 });
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+
+    async function processImage() {
+      if (!cropper) return;
+      const btn = document.getElementById('btnProcess');
+      const statusDiv = document.getElementById('status');
+      btn.disabled = true;
+      statusDiv.innerText = "⏳ กำลังส่งข้อมูลให้ระบบบันทึก...";
+      statusDiv.style.color = "#d93025";
+      
+      const base64Image = cropper.getCroppedCanvas().toDataURL('image/jpeg').split(',')[1];
+      const isOverwrite = document.getElementById('overwriteCheck').checked;
+
+      let currentPrices = {};
+      document.querySelectorAll('.price-input').forEach(input => {
+        currentPrices[input.dataset.group] = parseFloat(input.value) || 0;
+      });
+
+      const payload = { 
+        action: "processBillData", 
+        base64Image: base64Image,
+        forceOverwrite: isOverwrite,
+        prices: currentPrices 
+      };
+
+      try {
+        const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        const result = await response.json();
+        
+        if (result.status === "success") {
+          statusDiv.style.color = "#137333";
+          statusDiv.innerText = result.message; 
+          document.getElementById('overwriteCheck').checked = false; 
+        } else {
+          statusDiv.innerText = "❌ " + result.message; 
+        }
+      } catch (err) {
+        statusDiv.innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อ";
+      } finally { btn.disabled = false; }
+    }
+  </script>
+</body>
+</html>
