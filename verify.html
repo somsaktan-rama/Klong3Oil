@@ -3,45 +3,121 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.06</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.07</title>
   <style>
-    body { font-family: sans-serif; margin: 0; padding: 15px; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
-    .header-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    /* ตั้งค่าตัวแปรสีสำหรับ Light/Dark Mode */
+    :root {
+      --bg-color: #f0f2f5;
+      --panel-bg: #ffffff;
+      --text-color: #333333;
+      --border-color: #dddddd;
+      --head-bg: #1a73e8;
+      --head-text: #ffffff;
+      --summary-bg: #e8f0fe;
+      --input-bg: #ffffff;
+      --input-text: #000000;
+      --success-color: #28a745;
+    }
+
+    body.dark-mode {
+      --bg-color: #121212;
+      --panel-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --border-color: #444444;
+      --head-bg: #0d47a1;
+      --head-text: #ffffff;
+      --summary-bg: #2c2c2c;
+      --input-bg: #333333;
+      --input-text: #64b5f6; /* สีฟ้าอ่อนให้ตัวเลขเด่นในโหมดมืด */
+      --success-color: #4caf50;
+    }
+
+    body { font-family: sans-serif; margin: 0; padding: 15px; background: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; transition: background 0.3s; }
+    
+    .header-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.3s; }
     .main-container { display: flex; gap: 15px; flex: 1; overflow: hidden; }
-    .image-panel { flex: 4; background: white; border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 10px;}
-    .image-panel iframe { width: 100%; height: 100%; border: none; }
-    .data-panel { flex: 6; background: white; border-radius: 8px; padding: 15px; overflow-y: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background: #1a73e8; color: white; position: sticky; top: 0; }
-    input[type="number"] { width: 140px; padding: 8px; font-size: 1.3em; font-weight: bold; text-align: right; border: 2px solid #1a73e8; border-radius: 4px; }
-    input::-webkit-inner-spin-button { -webkit-appearance: none; }
-    .summary-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    
+    .image-panel { flex: 4; background: var(--panel-bg); border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 10px; transition: background 0.3s;}
+    .image-panel iframe { width: 100%; height: 100%; border: none; border-radius: 4px; background: #fff;}
+    
+    .data-panel { flex: 6; background: var(--panel-bg); border-radius: 8px; padding: 15px; overflow-y: auto; transition: background 0.3s;}
+    
+    table { width: 100%; border-collapse: collapse; background: var(--panel-bg); }
+    th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; }
+    th { background: var(--head-bg); color: var(--head-text); position: sticky; top: -15px; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1); transition: background 0.3s;}
+    
+    /* ขยายความกว้างช่องกรอกและซ่อนปุ่ม Spin */
+    input[type="number"] { 
+      width: 180px; /* ขยายกว้างขึ้น */
+      padding: 10px; 
+      font-size: 1.4em; 
+      font-weight: bold; 
+      text-align: right; 
+      border: 2px solid #1a73e8; 
+      border-radius: 6px; 
+      background: var(--input-bg);
+      color: var(--input-text);
+    }
+    
+    /* ซ่อน Spinners ใน Chrome, Safari, Edge */
+    input[type="number"]::-webkit-inner-spin-button, 
+    input[type="number"]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    /* ซ่อน Spinners ใน Firefox */
+    input[type="number"] { -moz-appearance: textfield; }
+    
+    .summary-box { background: var(--summary-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color); transition: background 0.3s; }
+    .summary-box table th { position: static; box-shadow: none; font-size: 1.1em;}
+    
+    /* ปุ่มต่างๆ */
+    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+    .btn-save { background: #28a745; color: white; }
+    .btn-cancel { background: #dc3545; color: white; }
+    .btn-dark { background: #444; color: white; border: 1px solid #666; }
+    body.dark-mode .btn-dark { background: #f0c040; color: #333; border: none; }
+    
+    select { padding: 10px; width: 300px; font-size: 16px; border-radius: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-color); }
   </style>
 </head>
 <body>
   <div class="header-bar">
-    <a href="index.html" style="text-decoration:none; font-weight:bold; color:#555;">🏠 กลับ</a>
-    <select id="shiftSelector" onchange="loadData()" style="padding:10px; width:300px;"><option value="">-- โหลดรายการ --</option></select>
-    <button onclick="saveData()" id="btnSave" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:4px; font-weight:bold;" disabled>💾 บันทึก</button>
+    <div>
+      <a href="index.html" style="text-decoration:none; font-weight:bold; color: var(--text-color); margin-right: 15px;">🏠 กลับหน้าอัปโหลด</a>
+      <select id="shiftSelector" onchange="loadData()">
+        <option value="">-- โหลดรายการ... --</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-dark" id="btnDarkMode" onclick="toggleDarkMode()">🌙 โหมดมืด</button>
+      <button class="btn btn-cancel" onclick="cancelEdit()">ยกเลิก</button>
+      <button class="btn btn-save" onclick="saveData()" id="btnSave" disabled>💾 บันทึก</button>
+    </div>
   </div>
 
   <div class="main-container">
     <div class="image-panel">
       <iframe id="billFrame" style="display:none;"></iframe>
-      <div id="noImg">โปรดเลือกกะ</div>
+      <div id="noImg" style="margin-top: 50px; color: gray;"><b>📸 โปรดเลือกกะด้านบน</b></div>
     </div>
     <div class="data-panel">
       <div class="summary-box">
-        <b>📊 ยอดเงินกะนี้</b>
-        <table style="margin-top:10px; background:white;">
-          <thead><tr><th>ชนิด</th><th>ปริมาณ</th><th>ราคา</th><th>รวม (บาท)</th></tr></thead>
+        <b style="font-size: 1.2em;">📊 สรุปยอดขาย (คำนวณเงินตามชนิดน้ำมัน)</b>
+        <table style="margin-top:10px;">
+          <thead><tr><th>ชนิดน้ำมัน</th><th>ปริมาณที่ขายได้</th><th>ราคา/ลิตร (แก้ไขได้)</th><th>รวมเป็นเงิน (บาท)</th></tr></thead>
           <tbody id="sumBody"></tbody>
-          <tfoot><tr><th colspan="3">รวมทั้งสิ้น:</th><th id="grandTotal" style="color:green;">0.00</th></tr></tfoot>
+          <tfoot>
+            <tr>
+              <th colspan="3" style="text-align:right; font-size: 1.3em;">ยอดรวมขายทั้งสิ้น:</th>
+              <th id="grandTotal" style="color: var(--success-color); font-size: 1.6em; font-weight: bold;">0.00</th>
+            </tr>
+          </tfoot>
         </table>
       </div>
+      
       <table id="mainTable">
-        <thead><tr><th>ลำดับ</th><th>รายการ</th><th>กะก่อน</th><th>กะนี้ (แก้ไข)</th><th>ผลต่าง</th></tr></thead>
+        <thead><tr><th>ลำดับ (H1)</th><th>รายการ (H2)</th><th>กะก่อนหน้า</th><th>กะปัจจุบัน (แก้ไข)</th><th>ผลต่างที่ขายได้</th></tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
@@ -51,24 +127,51 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec";
     let current = null;
 
+    // ระบบจัดการ Dark Mode
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('klong3_darkmode', isDark);
+      document.getElementById('btnDarkMode').innerText = isDark ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด";
+    }
+
     window.onload = async () => {
+      // โหลดสถานะ Dark Mode ตอนเปิดเว็บ
+      if (localStorage.getItem('klong3_darkmode') === 'true') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('btnDarkMode').innerText = "☀️ โหมดสว่าง";
+      }
+
       const res = await (await fetch(API_URL + "?action=getShiftList")).json();
       const sel = document.getElementById('shiftSelector');
-      sel.innerHTML = '<option value="">-- เลือกกะตรวจสอบ --</option>';
-      res.data.forEach(i => sel.innerHTML += `<option value="${i.rowId}">${i.display}</option>`);
+      sel.innerHTML = '<option value="">-- เลือกกะเพื่อตรวจสอบ --</option>';
+      if(res.status === "success") {
+        res.data.forEach(i => sel.innerHTML += `<option value="${i.rowId}">${i.display}</option>`);
+      }
     };
 
     async function loadData() {
       const id = document.getElementById('shiftSelector').value;
-      if(!id) return;
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">กำลังโหลด...</td></tr>';
+      if(!id) { cancelEdit(); return; }
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">กำลังโหลดข้อมูล...</td></tr>';
+      document.getElementById('btnSave').disabled = true;
+
       const res = await (await fetch(API_URL + `?action=getVerificationData&rowId=${id}`)).json();
-      current = res.data;
-      render();
-      const frame = document.getElementById('billFrame');
-      const match = current.imageUrl.match(/[-\w]{25,}/);
-      if(match) { frame.src = `https://drive.google.com/file/d/${match[0]}/preview`; frame.style.display='block'; document.getElementById('noImg').style.display='none'; }
-      document.getElementById('btnSave').disabled = false;
+      if(res.status === "success") {
+        current = res.data;
+        render();
+        const frame = document.getElementById('billFrame');
+        const match = current.imageUrl.match(/[-\w]{25,}/);
+        if(match) { 
+          frame.src = `https://drive.google.com/file/d/${match[0]}/preview`; 
+          frame.style.display = 'block'; 
+          document.getElementById('noImg').style.display = 'none'; 
+        } else { 
+          frame.style.display = 'none'; 
+          document.getElementById('noImg').style.display = 'block'; 
+        }
+        document.getElementById('btnSave').disabled = false;
+      }
     }
 
     function render() {
@@ -77,10 +180,23 @@
       for(let i=0; i<36; i++){
         let p = parseFloat(current.prevData[i])||0;
         let c = current.currData[i] !== "" ? parseFloat(current.currData[i]) : 0;
-        body.innerHTML += `<tr><td>${current.headers.h1[i]}</td><td>${current.headers.h2[i]}<br><small>${current.headers.h3[i]}</small></td><td>${p.toLocaleString()}</td><td><input type="number" step="any" inputmode="decimal" id="curr_${i}" value="${c}" oninput="calc()"></td><td id="diff_${i}">0</td></tr>`;
+        body.innerHTML += `<tr>
+          <td>${current.headers.h1[i]}</td>
+          <td>${current.headers.h2[i]}<br><small style="color:gray;">${current.headers.h3[i]}</small></td>
+          <td style="font-size:1.1em;">${p.toLocaleString(undefined,{minimumFractionDigits:3})}</td>
+          <td><input type="number" step="any" inputmode="decimal" id="curr_${i}" value="${c}" oninput="calc()"></td>
+          <td id="diff_${i}" style="font-weight:bold; color: #1a73e8; font-size:1.2em;">0</td>
+        </tr>`;
       }
+
       const unique = [...new Set(current.headers.h3.filter(g => g !== "-" && g !== ""))];
-      document.getElementById('sumBody').innerHTML = unique.map((g, i) => `<tr><td>${g}</td><td id="sv_${i}">0</td><td><input type="number" step="any" inputmode="decimal" style="width:80px; font-size:1em;" id="sp_${i}" data-group="${g}" value="${current.prices[g]||0}" oninput="calc()"></td><td id="sa_${i}">0</td></tr>`).join('');
+      document.getElementById('sumBody').innerHTML = unique.map((g, i) => `<tr>
+        <td style="font-weight:bold; color:var(--text-color);">${g}</td>
+        <td id="sv_${i}" style="font-size:1.2em;">0.000</td>
+        <td><input type="number" step="any" inputmode="decimal" style="width:120px; font-size:1.1em;" class="summary-price-input" data-group="${g}" value="${current.prices[g]||0}" oninput="calc()"></td>
+        <td id="sa_${i}" style="font-size:1.2em; font-weight:bold;">0.00</td>
+      </tr>`).join('');
+      
       calc();
     }
 
@@ -90,9 +206,10 @@
         let d = Math.max(0, (parseFloat(document.getElementById('curr_'+i).value)||0) - (parseFloat(current.prevData[i])||0));
         document.getElementById('diff_'+i).innerText = d.toLocaleString(undefined,{minimumFractionDigits:3});
         let g = current.headers.h3[i];
-        if(g!=="-" && g!=="") gTot[g] = (gTot[g]||0) + d;
+        if(g !== "-" && g !== "") gTot[g] = (gTot[g]||0) + d;
       }
-      document.querySelectorAll('.summary-box input').forEach((inp, i) => {
+
+      document.querySelectorAll('.summary-price-input').forEach((inp, i) => {
         let v = gTot[inp.dataset.group]||0, p = parseFloat(inp.value)||0, a = v*p;
         document.getElementById('sv_'+i).innerText = v.toLocaleString(undefined,{minimumFractionDigits:3});
         document.getElementById('sa_'+i).innerText = a.toLocaleString(undefined,{minimumFractionDigits:2});
@@ -103,12 +220,35 @@
 
     async function saveData() {
       const btn = document.getElementById('btnSave');
-      btn.disabled = true; btn.innerText = '⏳ บันทึก...';
+      btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...';
       let vs = [], ps = {};
-      for(let i=0; i<36; i++) vs.push(document.getElementById('curr_'+i).value === "" ? "" : parseFloat(document.getElementById('curr_'+i).value));
-      document.querySelectorAll('.summary-box input').forEach(i => ps[i.dataset.group] = parseFloat(i.value)||0);
-      await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "saveEditedData", rowId: document.getElementById('shiftSelector').value, volumes: vs, prices: ps }) });
-      alert("✅ บันทึกสำเร็จ"); btn.disabled = false; btn.innerText = '💾 บันทึก';
+      
+      for(let i=0; i<36; i++) {
+        let val = document.getElementById('curr_'+i).value;
+        vs.push(val === "" ? "" : parseFloat(val));
+      }
+      
+      document.querySelectorAll('.summary-price-input').forEach(i => ps[i.dataset.group] = parseFloat(i.value)||0);
+      
+      try {
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "saveEditedData", rowId: document.getElementById('shiftSelector').value, volumes: vs, prices: ps }) });
+        alert("✅ บันทึกข้อมูลสำเร็จ"); 
+      } catch (e) {
+        alert("❌ เชื่อมต่อล้มเหลว");
+      }
+      
+      btn.disabled = false; btn.innerText = '💾 บันทึก';
+    }
+
+    function cancelEdit() {
+      document.getElementById('shiftSelector').value = "";
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="5"></td></tr>';
+      document.getElementById('sumBody').innerHTML = '';
+      document.getElementById('grandTotal').innerText = '0.00';
+      document.getElementById('billFrame').style.display = 'none';
+      document.getElementById('noImg').style.display = 'block';
+      document.getElementById('btnSave').disabled = true;
+      current = null;
     }
   </script>
 </body>
