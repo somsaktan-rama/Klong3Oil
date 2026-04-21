@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.07</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.08</title>
   <style>
     /* ตั้งค่าตัวแปรสีสำหรับ Light/Dark Mode */
     :root {
@@ -28,7 +28,7 @@
       --head-text: #ffffff;
       --summary-bg: #2c2c2c;
       --input-bg: #333333;
-      --input-text: #64b5f6; /* สีฟ้าอ่อนให้ตัวเลขเด่นในโหมดมืด */
+      --input-text: #64b5f6; 
       --success-color: #4caf50;
     }
 
@@ -46,9 +46,8 @@
     th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; }
     th { background: var(--head-bg); color: var(--head-text); position: sticky; top: -15px; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1); transition: background 0.3s;}
     
-    /* ขยายความกว้างช่องกรอกและซ่อนปุ่ม Spin */
     input[type="number"] { 
-      width: 180px; /* ขยายกว้างขึ้น */
+      width: 180px; 
       padding: 10px; 
       font-size: 1.4em; 
       font-weight: bold; 
@@ -59,19 +58,13 @@
       color: var(--input-text);
     }
     
-    /* ซ่อน Spinners ใน Chrome, Safari, Edge */
     input[type="number"]::-webkit-inner-spin-button, 
-    input[type="number"]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
-    }
-    /* ซ่อน Spinners ใน Firefox */
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type="number"] { -moz-appearance: textfield; }
     
     .summary-box { background: var(--summary-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color); transition: background 0.3s; }
     .summary-box table th { position: static; box-shadow: none; font-size: 1.1em;}
     
-    /* ปุ่มต่างๆ */
     .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
     .btn-save { background: #28a745; color: white; }
     .btn-cancel { background: #dc3545; color: white; }
@@ -117,7 +110,16 @@
       </div>
       
       <table id="mainTable">
-        <thead><tr><th>ลำดับ (H1)</th><th>รายการ (H2)</th><th>กะก่อนหน้า</th><th>กะปัจจุบัน (แก้ไข)</th><th>ผลต่างที่ขายได้</th></tr></thead>
+        <thead>
+          <tr>
+            <th>ชนิดน้ำมัน (Grade)</th>
+            <th>หัวจ่าย (Head)</th>
+            <th>ตู้ (Pump)</th>
+            <th>กะก่อนหน้า</th>
+            <th>กะปัจจุบัน (แก้ไข)</th>
+            <th>ผลต่างที่ขายได้</th>
+          </tr>
+        </thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
@@ -127,7 +129,6 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec";
     let current = null;
 
-    // ระบบจัดการ Dark Mode
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       const isDark = document.body.classList.contains('dark-mode');
@@ -136,7 +137,6 @@
     }
 
     window.onload = async () => {
-      // โหลดสถานะ Dark Mode ตอนเปิดเว็บ
       if (localStorage.getItem('klong3_darkmode') === 'true') {
         document.body.classList.add('dark-mode');
         document.getElementById('btnDarkMode').innerText = "☀️ โหมดสว่าง";
@@ -153,7 +153,7 @@
     async function loadData() {
       const id = document.getElementById('shiftSelector').value;
       if(!id) { cancelEdit(); return; }
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">กำลังโหลดข้อมูล...</td></tr>';
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">กำลังโหลดข้อมูล...</td></tr>';
       document.getElementById('btnSave').disabled = true;
 
       const res = await (await fetch(API_URL + `?action=getVerificationData&rowId=${id}`)).json();
@@ -180,9 +180,12 @@
       for(let i=0; i<36; i++){
         let p = parseFloat(current.prevData[i])||0;
         let c = current.currData[i] !== "" ? parseFloat(current.currData[i]) : 0;
+        
+        // สลับตำแหน่งการแสดงผลเป็น Grade (H3) -> Head (H2) -> Pump (H1)
         body.innerHTML += `<tr>
-          <td>${current.headers.h1[i]}</td>
-          <td>${current.headers.h2[i]}<br><small style="color:gray;">${current.headers.h3[i]}</small></td>
+          <td style="font-weight:bold; color:var(--text-color); font-size:1.1em;">${current.headers.h3[i] || "-"}</td>
+          <td>${current.headers.h2[i] || "-"}</td>
+          <td>${current.headers.h1[i] || "-"}</td>
           <td style="font-size:1.1em;">${p.toLocaleString(undefined,{minimumFractionDigits:3})}</td>
           <td><input type="number" step="any" inputmode="decimal" id="curr_${i}" value="${c}" oninput="calc()"></td>
           <td id="diff_${i}" style="font-weight:bold; color: #1a73e8; font-size:1.2em;">0</td>
@@ -237,19 +240,4 @@
         alert("❌ เชื่อมต่อล้มเหลว");
       }
       
-      btn.disabled = false; btn.innerText = '💾 บันทึก';
-    }
-
-    function cancelEdit() {
-      document.getElementById('shiftSelector').value = "";
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="5"></td></tr>';
-      document.getElementById('sumBody').innerHTML = '';
-      document.getElementById('grandTotal').innerText = '0.00';
-      document.getElementById('billFrame').style.display = 'none';
-      document.getElementById('noImg').style.display = 'block';
-      document.getElementById('btnSave').disabled = true;
-      current = null;
-    }
-  </script>
-</body>
-</html>
+      btn.
