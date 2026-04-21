@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.03</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.04</title>
   <style>
     body { font-family: sans-serif; margin: 0; padding: 15px; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
     .header-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; }
@@ -22,7 +22,6 @@
     input[type="number"] { width: 160px; padding: 8px 5px; text-align: right; border: 2px solid #1a73e8; border-radius: 6px; font-weight: bold; font-size: 1.3em; background: #fff;}
     input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     
-    /* สไตล์สำหรับตารางสรุปเงิน */
     .summary-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #cce5ff;}
     .summary-table { width: 100%; background: white; border-radius: 4px; overflow: hidden; }
     .summary-table th { background: #f1f3f4; color: #333; position: static; font-size: 1em; padding: 10px;}
@@ -133,7 +132,6 @@
     }
 
     function renderTable() {
-      // 1. วาดตาราง 36 ช่องด้านล่าง
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
       for (let i = 0; i < 36; i++) {
@@ -143,34 +141,34 @@
         let prev = parseFloat(currentConfig.prevData[i]) || 0;
         let curr = currentConfig.currData[i] !== "" ? parseFloat(currentConfig.currData[i]) : 0;
         
+        // 💡 เพิ่ม inputmode="decimal" เพื่อเรียก Numpad บนมือถือ
         tbody.innerHTML += `<tr>
           <td>${h1}</td><td>${h2}</td><td id="group_${i}">${h3}</td>
           <td id="prev_${i}">${prev.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
-          <td><input type="number" step="any" id="curr_${i}" value="${curr}" oninput="calculate()"></td>
+          <td><input type="number" step="any" inputmode="decimal" id="curr_${i}" value="${curr}" oninput="calculate()"></td>
           <td id="diff_${i}" style="font-weight:bold; color: #1a73e8; font-size: 1.1em;">0</td>
         </tr>`;
       }
 
-      // 2. วาดตารางสรุปเงิน (เรียงตามกลุ่มน้ำมัน H3)
       const uniqueGroups = [...new Set(currentConfig.headers.h3.filter(g => g !== "-" && g !== ""))];
       let summaryHtml = '';
       uniqueGroups.forEach((group, index) => {
-        let price = currentConfig.prices[group] || 0; // ดึงราคาที่บันทึกไว้ของกะนั้นๆ มาแสดง
+        let price = currentConfig.prices[group] || 0; 
+        
+        // 💡 เพิ่ม inputmode="decimal" ตรงนี้ด้วย
         summaryHtml += `<tr>
           <td style="font-weight:bold; color:#1a73e8;">${group}</td>
           <td id="sumVol_${index}" style="font-weight:bold;">0.000</td>
-          <td><input type="number" step="any" class="summary-price-input" id="sumPrice_${index}" data-group="${group}" value="${price}" oninput="calculate()"></td>
+          <td><input type="number" step="any" inputmode="decimal" class="summary-price-input" id="sumPrice_${index}" data-group="${group}" value="${price}" oninput="calculate()"></td>
           <td id="sumAmt_${index}" style="font-weight:bold;">0.00</td>
         </tr>`;
       });
       document.getElementById('summaryBody').innerHTML = summaryHtml;
 
-      // สั่งคำนวณยอดเงินครั้งแรก
       calculate();
     }
 
     function calculate() {
-      // คำนวณปริมาณที่ขายได้รายกลุ่ม
       let groupTotals = {};
       for (let i = 0; i < 36; i++) {
         let prev = parseFloat(currentConfig.prevData[i]) || 0;
@@ -185,7 +183,6 @@
         }
       }
 
-      // คำนวณยอดเงิน
       let grandTotal = 0;
       const summaryInputs = document.querySelectorAll('.summary-price-input');
       summaryInputs.forEach((input, index) => {
@@ -207,14 +204,12 @@
       const btn = document.getElementById('btnSave');
       btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...';
       
-      // กวาดตัวเลข Volume 36 ตัว
       let updatedVolumes = [];
       for (let i = 0; i < 36; i++) {
         let val = document.getElementById('curr_'+i).value;
         updatedVolumes.push(val === "" ? "" : parseFloat(val));
       }
 
-      // กวาดราคาของตารางสรุป
       let updatedPrices = {};
       document.querySelectorAll('.summary-price-input').forEach(input => {
         updatedPrices[input.dataset.group] = parseFloat(input.value) || 0;
