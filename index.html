@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>อัปโหลดบิลส่งกะ คลอง 3 V1.03</title>
+  <title>อัปโหลดบิลส่งกะ คลอง 3 V1.04</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
@@ -16,7 +16,6 @@
     .overwrite-box { margin-top: 15px; background: #fff3cd; padding: 12px; border-radius: 6px; border: 1px solid #ffeeba; display: none;}
     .overwrite-label { cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; color: #856404; font-size: 14px;}
     
-    /* สไตล์กล่องราคาน้ำมัน */
     .price-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #cce5ff; }
     .price-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px; }
     .price-item label { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; color: #1a73e8;}
@@ -53,7 +52,6 @@
     // ⚠️ นำ Web App URL ของคุณมาใส่ตรงนี้
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec"; 
 
-    // ดึงราคาน้ำมันเริ่มต้นตอนเปิดเว็บ
     window.onload = async function() {
       try {
         const response = await fetch(API_URL + "?action=getInitialSetup");
@@ -66,8 +64,8 @@
           } else {
             html += '<div class="price-grid">';
             result.data.groups.forEach(group => {
-              let price = result.data.lastPrices[group] || 0;
-              html += `<div class="price-item"><label>${group} (บ./ลิตร)</label><input type="number" step="any" class="price-input" data-group="${group}" value="${price}"></div>`;
+              let price = result.data.lastPrices[group] || ""; // ดึงราคาจากกะล่าสุด
+              html += `<div class="price-item"><label>${group}</label><input type="number" step="any" class="price-input" data-group="${group}" value="${price}"></div>`;
             });
             html += '</div>';
           }
@@ -107,7 +105,6 @@
       const base64Image = cropper.getCroppedCanvas().toDataURL('image/jpeg').split(',')[1];
       const isOverwrite = document.getElementById('overwriteCheck').checked;
 
-      // กวาดราคาน้ำมันจากทุกช่อง
       let currentPrices = {};
       document.querySelectorAll('.price-input').forEach(input => {
         currentPrices[input.dataset.group] = parseFloat(input.value) || 0;
@@ -117,7 +114,7 @@
         action: "processBillData", 
         base64Image: base64Image,
         forceOverwrite: isOverwrite,
-        prices: currentPrices // ส่งราคาไปด้วย
+        prices: currentPrices 
       };
 
       try {
