@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.04</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.05</title>
   <style>
     body { font-family: sans-serif; margin: 0; padding: 15px; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
     .header-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; }
@@ -13,18 +13,21 @@
     .image-panel { flex: 4; background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
     .image-panel iframe { width: 100%; height: 80vh; border: none; border-radius: 4px; background: #f9f9f9; }
     
-    .data-panel { flex: 6; background: white; border-radius: 8px; padding: 15px; overflow-y: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+    /* แก้ไขส่วนหน้าต่างข้อมูล (ดึง display:flex ออก เพื่อให้เลื่อนเป็นหน้าเดียวตามธรรมชาติ) */
+    .data-panel { flex: 6; background: white; border-radius: 8px; padding: 15px; overflow-y: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: block; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.95em; }
-    th { background: #1a73e8; color: white; position: sticky; top: 0; z-index: 10; }
+    
+    /* หัวตารางดูดติดขอบบน (Sticky Header) */
+    th { background: #1a73e8; color: white; position: sticky; top: -15px; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1);}
     
     input[type="number"] { width: 160px; padding: 8px 5px; text-align: right; border: 2px solid #1a73e8; border-radius: 6px; font-weight: bold; font-size: 1.3em; background: #fff;}
     input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     
-    .summary-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #cce5ff;}
+    .summary-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #cce5ff;}
     .summary-table { width: 100%; background: white; border-radius: 4px; overflow: hidden; }
-    .summary-table th { background: #f1f3f4; color: #333; position: static; font-size: 1em; padding: 10px;}
+    .summary-table th { background: #f1f3f4; color: #333; position: static; font-size: 1em; padding: 10px; box-shadow: none;}
     .summary-table td { font-size: 1.1em; }
     .summary-price-input { width: 90px; padding: 5px; font-size: 1.1em; border: 1px solid #ccc; text-align: right; font-weight: bold; border-radius: 4px;}
     
@@ -71,7 +74,7 @@
         </table>
       </div>
 
-      <div style="overflow-y: auto; flex:1;">
+      <div>
         <table>
           <thead>
             <tr><th>Head</th><th>Pump</th><th>Grade</th><th>กะก่อนหน้า</th><th>กะปัจจุบัน (แก้ไข)</th><th>ผลต่าง (ขายได้)</th></tr>
@@ -141,7 +144,6 @@
         let prev = parseFloat(currentConfig.prevData[i]) || 0;
         let curr = currentConfig.currData[i] !== "" ? parseFloat(currentConfig.currData[i]) : 0;
         
-        // 💡 เพิ่ม inputmode="decimal" เพื่อเรียก Numpad บนมือถือ
         tbody.innerHTML += `<tr>
           <td>${h1}</td><td>${h2}</td><td id="group_${i}">${h3}</td>
           <td id="prev_${i}">${prev.toLocaleString(undefined, {minimumFractionDigits: 3})}</td>
@@ -155,7 +157,6 @@
       uniqueGroups.forEach((group, index) => {
         let price = currentConfig.prices[group] || 0; 
         
-        // 💡 เพิ่ม inputmode="decimal" ตรงนี้ด้วย
         summaryHtml += `<tr>
           <td style="font-weight:bold; color:#1a73e8;">${group}</td>
           <td id="sumVol_${index}" style="font-weight:bold;">0.000</td>
