@@ -1,257 +1,105 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.08</title>
+  <meta charset="utf-8">
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.09</title>
   <style>
-    /* ตั้งค่าตัวแปรสีสำหรับ Light/Dark Mode */
-    :root {
-      --bg-color: #f0f2f5;
-      --panel-bg: #ffffff;
-      --text-color: #333333;
-      --border-color: #dddddd;
-      --head-bg: #1a73e8;
-      --head-text: #ffffff;
-      --summary-bg: #e8f0fe;
-      --input-bg: #ffffff;
-      --input-text: #000000;
-      --success-color: #f7f70c;
-    }
-
-    body.dark-mode {
-      --bg-color: #121212;
-      --panel-bg: #1e1e1e;
-      --text-color: #e0e0e0;
-      --border-color: #444444;
-      --head-bg: #0d47a1;
-      --head-text: #ffffff;
-      --summary-bg: #2c2c2c;
-      --input-bg: #333333;
-      --input-text: #64b5f6; 
-      --success-color: #4caf50;
-    }
-
-    body { font-family: sans-serif; margin: 0; padding: 15px; background: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; transition: background 0.3s; }
-    
-    .header-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.3s; }
-    .main-container { display: flex; gap: 15px; flex: 1; overflow: hidden; }
-    
-    .image-panel { flex: 4; background: var(--panel-bg); border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 10px; transition: background 0.3s;}
-    .image-panel iframe { width: 100%; height: 100%; border: none; border-radius: 4px; background: #fff;}
-    
-    .data-panel { flex: 6; background: var(--panel-bg); border-radius: 8px; padding: 15px; overflow-y: auto; transition: background 0.3s;}
-    
-    table { width: 100%; border-collapse: collapse; background: var(--panel-bg); }
-    th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; }
-    th { background: var(--head-bg); color: var(--head-text); position: sticky; top: -15px; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1); transition: background 0.3s;}
-    
-    input[type="number"] { 
-      width: 180px; 
-      padding: 10px; 
-      font-size: 1.4em; 
-      font-weight: bold; 
-      text-align: right; 
-      border: 2px solid #1a73e8; 
-      border-radius: 6px; 
-      background: var(--input-bg);
-      color: var(--input-text);
-    }
-    
-    input[type="number"]::-webkit-inner-spin-button, 
-    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type="number"] { -moz-appearance: textfield; }
-    
-    .summary-box { background: var(--summary-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color); transition: background 0.3s; }
-    .summary-box table th { position: static; box-shadow: none; font-size: 1.1em;}
-    
-    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
-    .btn-save { background: #28a745; color: white; }
-    .btn-cancel { background: #dc3545; color: white; }
-    .btn-dark { background: #444; color: white; border: 1px solid #666; }
-    body.dark-mode .btn-dark { background: #f0c040; color: #333; border: none; }
-    
-    select { padding: 10px; width: 300px; font-size: 16px; border-radius: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-color); }
+    body { font-family: Tahoma, sans-serif; margin: 20px; }
+    select, button { padding: 8px; font-size: 16px; margin-bottom: 15px; }
+    .container { display: flex; gap: 20px; flex-wrap: wrap; }
+    .img-box { flex: 1; min-width: 300px; border: 1px solid #ccc; height: 70vh;}
+    .data-box { flex: 1; min-width: 300px; }
+    iframe { width: 100%; height: 100%; border: none; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
   </style>
 </head>
 <body>
-  <div class="header-bar">
-    <div>
-      <a href="index.html" style="text-decoration:none; font-weight:bold; color: var(--text-color); margin-right: 15px;">🏠 กลับหน้าอัปโหลด</a>
-      <select id="shiftSelector" onchange="loadData()">
-        <option value="">-- โหลดรายการ... --</option>
-      </select>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button class="btn btn-dark" id="btnDarkMode" onclick="toggleDarkMode()">🌙 โหมดมืด</button>
-      <button class="btn btn-cancel" onclick="cancelEdit()">ยกเลิก</button>
-      <button class="btn btn-save" onclick="saveData()" id="btnSave" disabled>💾 บันทึก</button>
-    </div>
-  </div>
+  <h2>🔎 ตรวจสอบและแก้ไขบิล</h2>
 
-  <div class="main-container">
-    <div class="image-panel">
+  <select id="shiftSelector" onchange="loadData()">
+    <option value="">⏳ กำลังโหลดรายการบิล...</option>
+  </select>
+
+  <div class="container">
+    <div class="img-box">
+      <div id="noImg" style="padding: 20px; text-align: center; color: #888;">(ไม่มีรูปภาพบิล)</div>
       <iframe id="billFrame" style="display:none;"></iframe>
-      <div id="noImg" style="margin-top: 50px; color: gray;"><b>📸 โปรดเลือกกะด้านบน</b></div>
     </div>
-    <div class="data-panel">
-      <div class="summary-box">
-        <b style="font-size: 1.2em;">📊 สรุปยอดขาย (คำนวณเงินตามชนิดน้ำมัน)</b>
-        <table style="margin-top:10px;">
-          <thead><tr><th>ชนิดน้ำมัน</th><th>ปริมาณที่ขายได้</th><th>ราคา/ลิตร (แก้ไขได้)</th><th>รวมเป็นเงิน (บาท)</th></tr></thead>
-          <tbody id="sumBody"></tbody>
-          <tfoot>
-            <tr>
-              <th colspan="3" style="text-align:right; font-size: 1.3em;">ยอดรวมขายทั้งสิ้น:</th>
-              <th id="grandTotal" style="color: var(--success-color); font-size: 1.6em; font-weight: bold;">0.00</th>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      
-      <table id="mainTable">
-        <thead>
-          <tr>
-            <th>ชนิดน้ำมัน (Grade)</th>
-            <th>หัวจ่าย (Head)</th>
-            <th>ตู้ (Pump)</th>
-            <th>กะก่อนหน้า</th>
-            <th>กะปัจจุบัน (แก้ไข)</th>
-            <th>ผลต่างที่ขายได้</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
+
+    <div class="data-box">
+      <table>
+        <tbody id="tableBody">
+          <tr><td colspan="2" style="text-align:center;">กรุณาเลือกบิลด้านบน 👆</td></tr>
+        </tbody>
       </table>
+      <button id="btnSave" style="margin-top: 15px; display: none;" disabled>💾 บันทึกการแก้ไข (กำลังพัฒนา)</button>
     </div>
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec";
-    let current = null;
+    const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec"; 
 
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-      const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('klong3_darkmode', isDark);
-      document.getElementById('btnDarkMode').innerText = isDark ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด";
-    }
-
+    // 1. โหลดรายการ Dropdown
     window.onload = async () => {
-      if (localStorage.getItem('klong3_darkmode') === 'true') {
-        document.body.classList.add('dark-mode');
-        document.getElementById('btnDarkMode').innerText = "☀️ โหมดสว่าง";
-      }
-
-      const res = await (await fetch(API_URL + "?action=getShiftList")).json();
-      const sel = document.getElementById('shiftSelector');
-      sel.innerHTML = '<option value="">-- เลือกกะเพื่อตรวจสอบ --</option>';
-      if(res.status === "success") {
-        res.data.forEach(i => sel.innerHTML += `<option value="${i.rowId}">${i.display}</option>`);
+      try {
+        const res = await (await fetch(API_URL + "?action=getShiftList")).json();
+        const sel = document.getElementById('shiftSelector');
+        sel.innerHTML = '<option value="">-- เลือกรายการบิลที่ต้องการตรวจสอบ --</option>';
+        if(res.status === "success") {
+          res.data.forEach(item => sel.add(new Option(item.label, item.id)));
+        }
+      } catch (err) {
+        document.getElementById('shiftSelector').innerHTML = '<option value="">❌ โหลดรายการไม่สำเร็จ</option>';
       }
     };
 
+    // 2. โหลดข้อมูล 1 แถวแบบป้องกันหน้าค้าง (Try-Catch)
     async function loadData() {
       const id = document.getElementById('shiftSelector').value;
-      if(!id) { cancelEdit(); return; }
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">กำลังโหลดข้อมูล...</td></tr>';
-      document.getElementById('btnSave').disabled = true;
-
-      const res = await (await fetch(API_URL + `?action=getVerificationData&rowId=${id}`)).json();
-      if(res.status === "success") {
-        current = res.data;
-        render();
-        const frame = document.getElementById('billFrame');
-        const match = current.imageUrl.match(/[-\w]{25,}/);
-        if(match) { 
-          frame.src = `https://drive.google.com/file/d/${match[0]}/preview`; 
-          frame.style.display = 'block'; 
-          document.getElementById('noImg').style.display = 'none'; 
-        } else { 
-          frame.style.display = 'none'; 
-          document.getElementById('noImg').style.display = 'block'; 
-        }
-        document.getElementById('btnSave').disabled = false;
-      }
-    }
-
-    function render() {
-      const body = document.getElementById('tableBody');
-      body.innerHTML = '';
-      for(let i=0; i<36; i++){
-        let p = parseFloat(current.prevData[i])||0;
-        let c = current.currData[i] !== "" ? parseFloat(current.currData[i]) : 0;
-        
-        // สลับตำแหน่งการแสดงผลเป็น Grade (H3) -> Head (H2) -> Pump (H1)
-        body.innerHTML += `<tr>
-          <td style="font-weight:bold; color:var(--text-color); font-size:1.1em;">${current.headers.h3[i] || "-"}</td>
-          <td>${current.headers.h2[i] || "-"}</td>
-          <td>${current.headers.h1[i] || "-"}</td>
-          <td style="font-size:1.1em;">${p.toLocaleString(undefined,{minimumFractionDigits:3})}</td>
-          <td><input type="number" step="any" inputmode="decimal" id="curr_${i}" value="${c}" oninput="calc()"></td>
-          <td id="diff_${i}" style="font-weight:bold; color: #1a73e8; font-size:1.2em;">0</td>
-        </tr>`;
-      }
-
-      const unique = [...new Set(current.headers.h3.filter(g => g !== "-" && g !== ""))];
-      document.getElementById('sumBody').innerHTML = unique.map((g, i) => `<tr>
-        <td style="font-weight:bold; color:var(--text-color);">${g}</td>
-        <td id="sv_${i}" style="font-size:1.2em;">0.000</td>
-        <td><input type="number" step="any" inputmode="decimal" style="width:120px; font-size:1.1em;" class="summary-price-input" data-group="${g}" value="${current.prices[g]||0}" oninput="calc()"></td>
-        <td id="sa_${i}" style="font-size:1.2em; font-weight:bold;">0.00</td>
-      </tr>`).join('');
+      const tableBody = document.getElementById('tableBody');
+      const frame = document.getElementById('billFrame');
+      const noImg = document.getElementById('noImg');
       
-      calc();
-    }
-
-    function calc() {
-      let gTot = {}, grand = 0;
-      for(let i=0; i<36; i++){
-        let d = Math.max(0, (parseFloat(document.getElementById('curr_'+i).value)||0) - (parseFloat(current.prevData[i])||0));
-        document.getElementById('diff_'+i).innerText = d.toLocaleString(undefined,{minimumFractionDigits:3});
-        let g = current.headers.h3[i];
-        if(g !== "-" && g !== "") gTot[g] = (gTot[g]||0) + d;
-      }
-
-      document.querySelectorAll('.summary-price-input').forEach((inp, i) => {
-        let v = gTot[inp.dataset.group]||0, p = parseFloat(inp.value)||0, a = v*p;
-        document.getElementById('sv_'+i).innerText = v.toLocaleString(undefined,{minimumFractionDigits:3});
-        document.getElementById('sa_'+i).innerText = a.toLocaleString(undefined,{minimumFractionDigits:2});
-        grand += a;
-      });
-      document.getElementById('grandTotal').innerText = grand.toLocaleString(undefined,{minimumFractionDigits:2});
-    }
-
-    async function saveData() {
-      const btn = document.getElementById('btnSave');
-      btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...';
-      let vs = [], ps = {};
-      
-      for(let i=0; i<36; i++) {
-        let val = document.getElementById('curr_'+i).value;
-        vs.push(val === "" ? "" : parseFloat(val));
+      if(!id) { 
+        tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center;">กรุณาเลือกบิลด้านบน 👆</td></tr>';
+        frame.style.display = 'none'; noImg.style.display = 'block';
+        return; 
       }
       
-      document.querySelectorAll('.summary-price-input').forEach(i => ps[i.dataset.group] = parseFloat(i.value)||0);
-      
+      tableBody.innerHTML = '<tr><td colspan="2" style="text-align: center; color: blue;">⏳ กำลังโหลดข้อมูล...</td></tr>';
+
       try {
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "saveEditedData", rowId: document.getElementById('shiftSelector').value, volumes: vs, prices: ps }) });
-        alert("✅ บันทึกข้อมูลสำเร็จ"); 
-      } catch (e) {
-        alert("❌ เชื่อมต่อล้มเหลว");
-      }
-      
-      btn.disabled = false; btn.innerText = '💾 บันทึก';
-    }
+        const response = await fetch(API_URL + `?action=getVerificationData&rowId=${id}`);
+        const res = await response.json();
+        
+        if(res.status === "success") {
+          const d = res.data;
+          
+          // โชว์รูป
+          const match = d.imageUrl ? d.imageUrl.match(/[-\w]{25,}/) : null;
+          if(match) { 
+            frame.src = `https://drive.google.com/file/d/${match[0]}/preview`; 
+            frame.style.display = 'block'; noImg.style.display = 'none'; 
+          } else { 
+            frame.style.display = 'none'; noImg.style.display = 'block'; 
+          }
 
-    function cancelEdit() {
-      document.getElementById('shiftSelector').value = "";
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6"></td></tr>';
-      document.getElementById('sumBody').innerHTML = '';
-      document.getElementById('grandTotal').innerText = '0.00';
-      document.getElementById('billFrame').style.display = 'none';
-      document.getElementById('noImg').style.display = 'block';
-      document.getElementById('btnSave').disabled = true;
-      current = null;
+          // เรนเดอร์ข้อมูลลงตารางเบื้องต้น
+          tableBody.innerHTML = `
+            <tr><th>วันที่</th><td>${d.date}</td></tr>
+            <tr><th>เวลา</th><td>${d.time}</td></tr>
+            <tr><th>กะ</th><td>${d.shift}</td></tr>
+            <tr><th>ปริมาณรวม (ตัวอย่าง)</th><td>${d.volumes.filter(v => v !== "").length} รายการ</td></tr>
+          `;
+          document.getElementById('btnSave').style.display = 'block';
+        } else {
+          throw new Error(res.message);
+        }
+      } catch (error) {
+        tableBody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: red;">❌ เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
+      }
     }
   </script>
 </body>
