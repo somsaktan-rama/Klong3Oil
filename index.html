@@ -1,46 +1,49 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>อัปโหลดบิลส่งกะ คลอง 3 V1.07</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>อัปโหลดบิลส่งกะ คลอง 3 V1.08</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
-    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    img { max-width: 100%; }
-    .img-container { margin-top: 15px; display: none; }
-    button { width: 100%; padding: 12px; margin-top: 15px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold;}
+    body { font-family: Tahoma, sans-serif; margin: 20px; }
+    .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; margin-bottom: 20px;}
+    .price-item { display: flex; flex-direction: column; }
+    input { padding: 5px; border-radius: 4px; border: 1px solid #ccc; }
+    button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top:10px; }
     button:disabled { background: #ccc; }
-    .price-box { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #cce5ff; }
-    .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-    .price-item input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: right; font-weight: bold; font-size: 1.1em; box-sizing: border-box;}
-    .overwrite-box { margin-top: 15px; background: #fff3cd; padding: 12px; border-radius: 6px; border: 1px solid #ffeeba; display: none;}
+    #cropArea { max-width: 100%; height: 60vh; margin-top: 10px; display: none; }
+    #status { margin-top: 15px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2 style="text-align: center;">📸 ส่งบิล (เช้า / ดึก)</h2>
-    <div class="price-box" id="priceContainer">กำลังโหลดราคาล่าสุด...</div>
-    <input type="file" id="fileInput" accept="image/*" style="width: 100%; margin-top: 15px;">
-    <div class="img-container" id="cropArea"><img id="image"></div>
-    <div class="overwrite-box" id="overwriteContainer">
-      <label style="cursor:pointer; color:#856404; font-weight:bold;"><input type="checkbox" id="overwriteCheck"> ⚠️ บันทึกทับข้อมูลเดิม (กรณีบิลซ้ำ)</label>
-    </div>
-    <button id="btnProcess" style="display:none;" onclick="processImage()">✂️ Crop และส่งอ่านค่า</button>
-    <div id="status" style="margin-top: 15px; text-align: center; font-weight: bold;"></div>
-    <a href="verify.html" style="display:block; text-align:center; margin-top:20px; color:#1a73e8; text-decoration:none;">👉 ไปหน้าตรวจสอบบิล</a>
+  <h2>⛽ บันทึกบิลน้ำมัน (OCR)</h2>
+  
+  <div id="priceContainer">กำลังโหลดราคาน้ำมัน...</div>
+
+  <div style="margin-top: 20px;">
+    <b>อัปโหลดบิลน้ำมัน:</b><br>
+    <input type="file" id="fileInput" accept="image/*" style="margin-top: 5px;">
+  </div>
+  
+  <div id="overwriteContainer" style="display:none; margin-top:15px;">
+    <label><input type="checkbox" id="overwriteCheck"> ⚠️ บันทึกทับข้อมูลเดิม (กรณีบิลซ้ำ)</label>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <div id="cropArea"><img id="image" src=""></div>
+  <button id="btnProcess" style="display:none;" onclick="processImage()">🚀 เริ่มสแกนและบันทึก</button>
+  <div id="status"></div>
+
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec"; 
+    
     window.onload = async () => {
       const res = await (await fetch(API_URL + "?action=getInitialSetup")).json();
       if(res.status === "success") {
         let html = '<b>💰 ราคาน้ำมันวันนี้</b><div class="price-grid">';
         res.data.groups.forEach(g => {
-          html += `<div class="price-item"><label>${g}</label><input type="number" step="any" inputmode="decimal" class="price-input" data-group="${g}" value="${res.data.lastPrices[g]||''}"></div>`;
+          html += `<div class="price-item"><label>${g}</label><input type="number" step="any" class="price-input" data-group="${g}" value="${res.data.lastPrices[g]||''}"></div>`;
         });
         document.getElementById('priceContainer').innerHTML = html + '</div>';
       }
@@ -54,43 +57,53 @@
         document.getElementById('cropArea').style.display = 'block';
         document.getElementById('btnProcess').style.display = 'block';
         document.getElementById('overwriteContainer').style.display = 'block';
+        document.getElementById('status').innerText = "";
+        
         if (cropper) cropper.destroy();
-        cropper = new Cropper(document.getElementById('image'), { viewMode: 2 });
+        
+        cropper = new Cropper(document.getElementById('image'), { 
+          viewMode: 1,
+          autoCropArea: 1, // สูง 100%
+          ready: function () {
+            // 📌 หั่นพื้นที่ด้านซ้าย 15% และขวา 15% ออก (เหลือความกว้างตรงกลาง 70%)
+            const containerData = cropper.getContainerData();
+            cropper.setCropBoxData({
+              left: containerData.width * 0.15,
+              top: 0,
+              width: containerData.width * 0.70,
+              height: containerData.height
+            });
+          }
+        });
       };
       reader.readAsDataURL(e.target.files[0]);
     };
 
     async function processImage() {
-  const btn = document.getElementById('btnProcess');
-  const status = document.getElementById('status');
-  btn.disabled = true; 
-  status.innerText = "⏳ กำลังประมวลผลและบันทึก...";
-  status.style.color = "blue";
-  
-  // เก็บราคาน้ำมันจากหน้าจอ
-  const prices = {};
-  document.querySelectorAll('.price-input').forEach(input => {
-    prices[input.dataset.group] = input.value;
-  });
+      const btn = document.getElementById('btnProcess');
+      const status = document.getElementById('status');
+      btn.disabled = true; status.innerText = "⏳ AI กำลังสแกนบิลและบันทึกข้อมูล..."; status.style.color = "blue";
+      
+      const prices = {};
+      document.querySelectorAll('.price-input').forEach(i => prices[i.dataset.group] = parseFloat(i.value) || 0);
 
-  const payload = { 
-    action: "processBillData", 
-    base64Image: cropper.getCroppedCanvas({ width: 1000 }).toDataURL('image/jpeg', 0.8).split(',')[1],
-    forceOverwrite: document.getElementById('overwriteCheck').checked,
-    prices: prices // ส่งราคาน้ำมันไปด้วย
-  };
+      const payload = { 
+        action: "processBillData", 
+        base64Image: cropper.getCroppedCanvas({ width: 1000 }).toDataURL('image/jpeg', 0.8).split(',')[1],
+        forceOverwrite: document.getElementById('overwriteCheck').checked,
+        prices: prices
+      };
 
-  try {
-    const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-    const res = await response.json();
-    status.innerText = (res.status === "success" ? res.message : "❌ " + res.message);
-    status.style.color = (res.status === "success" ? "green" : "red");
-  } catch (e) { 
-    status.innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อ"; 
-    status.style.color = "red";
-  }
-  btn.disabled = false;
-}
+      try {
+        const res = await (await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })).json();
+        status.innerText = res.message;
+        status.style.color = (res.status === "success" ? "green" : "red");
+      } catch (e) { 
+        status.innerText = "❌ เชื่อมต่อขัดข้อง โปรดลองใหม่"; 
+        status.style.color = "red";
+      }
+      btn.disabled = false;
+    }
   </script>
 </body>
 </html>
