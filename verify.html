@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.09</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.10</title>
   <style>
     /* ตั้งค่าตัวแปรสีสำหรับ Light/Dark Mode */
     :root {
@@ -140,11 +140,12 @@
     </div>
   </div>
 
-  <script>
+ <script>
     // ⚠️ นำ Web App URL ของคุณมาใส่ตรงนี้
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec";
     let current = null;
 
+    // ระบบจัดการ Dark Mode
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       const isDark = document.body.classList.contains('dark-mode');
@@ -152,22 +153,38 @@
       document.getElementById('btnDarkMode').innerText = isDark ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด";
     }
 
+    // ฟังก์ชันสำหรับโหลดรายชื่อกะ (แยกออกมาเพื่อให้เรียกซ้ำได้)
+    async function loadShiftList() {
+      const sel = document.getElementById('shiftSelector');
+      const currentSelected = sel.value; // จำค่าที่เลือกไว้ก่อนหน้า
+      
+      try {
+        const res = await (await fetch(API_URL + "?action=getShiftList")).json();
+        if(res.status === "success") {
+          sel.innerHTML = '<option value="">-- เลือกกะเพื่อตรวจสอบ --</option>';
+          res.data.forEach(i => {
+            let prefix = i.isError ? "⚠️ [ผิดปกติ] " : "📄 ";
+            let cssClass = i.isError ? "opt-error" : "";
+            sel.innerHTML += `<option value="${i.rowId}" class="${cssClass}">${prefix}${i.display}</option>`;
+          });
+          
+          // ถ้าเคยเลือกกะไว้ ให้เลือกกะเดิมต่อหลังจากอัปเดต List
+          if (currentSelected) {
+            sel.value = currentSelected;
+          }
+        }
+      } catch (e) {
+        console.error("โหลดรายการไม่สำเร็จ", e);
+      }
+    }
+
     window.onload = async () => {
       if (localStorage.getItem('klong3_darkmode') === 'true') {
         document.body.classList.add('dark-mode');
         document.getElementById('btnDarkMode').innerText = "☀️ โหมดสว่าง";
       }
-
-      const res = await (await fetch(API_URL + "?action=getShiftList")).json();
-      const sel = document.getElementById('shiftSelector');
-      sel.innerHTML = '<option value="">-- เลือกกะเพื่อตรวจสอบ --</option>';
-      if(res.status === "success") {
-        res.data.forEach(i => {
-          let prefix = i.isError ? "⚠️ [ผิดปกติ] " : "📄 ";
-          let cssClass = i.isError ? "opt-error" : "";
-          sel.innerHTML += `<option value="${i.rowId}" class="${cssClass}">${prefix}${i.display}</option>`;
-        });
-      }
+      // โหลดรายชื่อกะครั้งแรกตอนเปิดหน้าเว็บ
+      await loadShiftList();
     };
 
     async function loadData() {
@@ -176,7 +193,7 @@
       
       // เปลี่ยนสี Header แจ้งเตือน
       const selectedOption = document.querySelector(`#shiftSelector option[value="${id}"]`);
-      if (selectedOption.classList.contains('opt-error')) {
+      if (selectedOption && selectedOption.classList.contains('opt-error')) {
         document.getElementById('mainHeader').classList.add('has-error');
       } else {
         document.getElementById('mainHeader').classList.remove('has-error');
@@ -185,21 +202,25 @@
       document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">กำลังโหลดข้อมูล...</td></tr>';
       document.getElementById('btnSave').disabled = true;
 
-      const res = await (await fetch(API_URL + `?action=getVerificationData&rowId=${id}`)).json();
-      if(res.status === "success") {
-        current = res.data;
-        render();
-        const frame = document.getElementById('billFrame');
-        const match = current.imageUrl.match(/[-\w]{25,}/);
-        if(match) { 
-          frame.src = `https://drive.google.com/file/d/${match[0]}/preview`; 
-          frame.style.display = 'block'; 
-          document.getElementById('noImg').style.display = 'none'; 
-        } else { 
-          frame.style.display = 'none'; 
-          document.getElementById('noImg').style.display = 'block'; 
+      try {
+        const res = await (await fetch(API_URL + `?action=getVerificationData&rowId=${id}`)).json();
+        if(res.status === "success") {
+          current = res.data;
+          render();
+          const frame = document.getElementById('billFrame');
+          const match = current.imageUrl.match(/[-\w]{25,}/);
+          if(match) { 
+            frame.src = `https://drive.google.com/file/d/${match[0]}/preview`; 
+            frame.style.display = 'block'; 
+            document.getElementById('noImg').style.display = 'none'; 
+          } else { 
+            frame.style.display = 'none'; 
+            document.getElementById('noImg').style.display = 'block'; 
+          }
+          document.getElementById('btnSave').disabled = false;
         }
-        document.getElementById('btnSave').disabled = false;
+      } catch (e) {
+        alert("ดึงข้อมูลไม่สำเร็จ");
       }
     }
 
@@ -210,7 +231,6 @@
         let p = parseFloat(current.prevData[i])||0;
         let c = current.currData[i] !== "" ? parseFloat(current.currData[i]) : 0;
         
-        // ตรวจสอบความผิดปกติ (Meter ลดลง)
         let isCellError = (c < p && current.currData[i] !== "");
         let inputClass = isCellError ? 'class="error-input"' : '';
         let rowClass = isCellError ? 'class="error-row"' : '';
@@ -242,7 +262,6 @@
         let p = parseFloat(current.prevData[i])||0;
         let c = parseFloat(document.getElementById('curr_'+i).value)||0;
         
-        // ตรวจจับแก้ไข Real-time: ถ้าค่าที่แก้ทำให้กลับมาปกติ (ไม่ลดลง) ให้ลบกรอบสีแดงออก
         let inputEl = document.getElementById('curr_'+i);
         let trEl = inputEl.closest('tr');
         if (c >= p || inputEl.value === "") {
@@ -271,6 +290,9 @@
 
     async function saveData() {
       const btn = document.getElementById('btnSave');
+      const id = document.getElementById('shiftSelector').value;
+      if (!id) return;
+      
       btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...';
       let vs = [], ps = {};
       
@@ -282,10 +304,24 @@
       document.querySelectorAll('.summary-price-input').forEach(i => ps[i.dataset.group] = parseFloat(i.value)||0);
       
       try {
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "saveEditedData", rowId: document.getElementById('shiftSelector').value, volumes: vs, prices: ps }) });
-        alert("✅ บันทึกข้อมูลสำเร็จ"); 
+        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "saveEditedData", rowId: id, volumes: vs, prices: ps }) });
+        const result = await response.json();
+        
+        alert("✅ " + result.message); 
+        
+        // --- ส่วนที่เพิ่มใหม่: อัปเดต List ทันทีหลังจากบันทึกสำเร็จ ---
+        await loadShiftList(); 
+        
+        // เช็คสี Header อีกครั้งหลังโหลด List ใหม่
+        const selectedOption = document.querySelector(`#shiftSelector option[value="${id}"]`);
+        if (selectedOption && selectedOption.classList.contains('opt-error')) {
+          document.getElementById('mainHeader').classList.add('has-error');
+        } else {
+          document.getElementById('mainHeader').classList.remove('has-error');
+        }
+        
       } catch (e) {
-        alert("❌ เชื่อมต่อล้มเหลว");
+        alert("❌ เกิดข้อผิดพลาดในการบันทึก");
       }
       
       btn.disabled = false; btn.innerText = '💾 บันทึก';
@@ -302,6 +338,7 @@
       document.getElementById('btnSave').disabled = true;
       current = null;
     }
-  </script>
+  </script>   
+
 </body>
 </html>
