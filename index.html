@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>อัปโหลดบิลส่งกะ คลอง 3 V1.111</title>
+  <title>บิลส่งกะ คลอง 3 V1.112</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
   <style>
     body { font-family: sans-serif; padding: 15px; background: #f0f2f5; }
@@ -14,11 +14,10 @@
     button { width: 100%; padding: 12px; margin-top: 15px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold;}
     button:disabled { background: #ccc; }
     
-    /* 💡 แก้ปัญหาช่อง Crop ยาวเกินไป โดยจำกัดความสูงไว้ที่ 60% ของหน้าจอ */
     .img-container { 
       margin-top: 15px; 
       display: none; 
-      max-height: 60vh; /* ไม่ให้ยาวทะลุหน้าจอ */
+      max-height: 60vh; 
       background-color: #f9f9f9;
       border: 1px solid #ddd;
       border-radius: 4px;
@@ -33,7 +32,7 @@
 </head>
 <body>
   <div class="container">
-    <h2 style="text-align: center;">📸 อัปโหลดบิลส่งกะ คลอง 3 V1.111</h2>
+    <h2 style="text-align: center;">📸 บิลส่งกะ คลอง 3 V1.112</h2>
     
     <div class="price-box" id="priceContainer">กำลังโหลดราคาล่าสุด...</div>
 
@@ -64,7 +63,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
   <script>
-    // ⚠️ อย่าลืมใส่ Web App URL ของคุณตรงนี้นะครับ
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec"; 
 
     window.onload = async () => {
@@ -94,14 +92,11 @@
         
         if (cropper) cropper.destroy();
         
-        // 💡 ตั้งค่า Cropper ใหม่ ให้ตัดขอบซ้าย-ขวา 20% อัตโนมัติ
         cropper = new Cropper(document.getElementById('image'), { 
           viewMode: 2,
-          dragMode: 'move', // ให้ลากเลื่อนรูปได้ง่ายๆ
+          dragMode: 'move', 
           ready: function () {
             const containerData = this.cropper.getContainerData();
-            
-            // ตั้งค่ากล่อง Crop: หดซ้าย 10% ขวา 10% (รวม 20%) ความสูงเต็ม 100%
             this.cropper.setCropBoxData({
               left: containerData.width * 0.1,  
               width: containerData.width * 0.8, 
