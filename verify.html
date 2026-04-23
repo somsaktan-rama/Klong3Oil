@@ -3,42 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.08</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.09</title>
   <style>
+    /* ตั้งค่าตัวแปรสีสำหรับ Light/Dark Mode */
     :root {
-      --bg-color: #f0f2f5; --panel-bg: #ffffff; --text-color: #333333; --border-color: #dddddd;
-      --head-bg: #1a73e8; --head-text: #ffffff; --summary-bg: #e8f0fe; --input-bg: #ffffff;
-      --input-text: #000000; --success-color: #0d47a1;
+      --bg-color: #f0f2f5;
+      --panel-bg: #ffffff;
+      --text-color: #333333;
+      --border-color: #dddddd;
+      --head-bg: #1a73e8;
+      --head-text: #ffffff;
+      --summary-bg: #e8f0fe;
+      --input-bg: #ffffff;
+      --input-text: #000000;
+      --success-color: #28a745;
     }
+
     body.dark-mode {
-      --bg-color: #121212; --panel-bg: #1e1e1e; --text-color: #e0e0e0; --border-color: #444444;
-      --head-bg: #0d47a1; --head-text: #ffffff; --summary-bg: #2c2c2c; --input-bg: #333333;
-      --input-text: #64b5f6; --success-color: #4caf50;
+      --bg-color: #121212;
+      --panel-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --border-color: #444444;
+      --head-bg: #0d47a1;
+      --head-text: #ffffff;
+      --summary-bg: #2c2c2c;
+      --input-bg: #333333;
+      --input-text: #64b5f6; 
+      --success-color: #4caf50;
     }
-    body { font-family: Tahoma, sans-serif; margin: 0; padding: 15px; background: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; transition: background 0.3s; }
+
+    body { font-family: sans-serif; margin: 0; padding: 15px; background: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; transition: background 0.3s; }
     
-    .header-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.3s; }
+    /* เปลี่ยนสี Header เมื่อมี Error */
+    .header-bar.has-error { background-color: #fff0f0; border-bottom: 3px solid #ff4d4d; }
+    body.dark-mode .header-bar.has-error { background-color: #4a1c1c; border-bottom: 3px solid #ff6b6b; }
+
     .main-container { display: flex; gap: 15px; flex: 1; overflow: hidden; }
     
-    .image-panel { flex: 4; background: var(--panel-bg); border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+    .image-panel { flex: 4; background: var(--panel-bg); border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 10px; transition: background 0.3s;}
     .image-panel iframe { width: 100%; height: 100%; border: none; border-radius: 4px; background: #fff;}
     
-    .data-panel { flex: 6; background: var(--panel-bg); border-radius: 8px; padding: 15px; overflow-y: auto; }
+    .data-panel { flex: 6; background: var(--panel-bg); border-radius: 8px; padding: 15px; overflow-y: auto; transition: background 0.3s;}
     
     table { width: 100%; border-collapse: collapse; background: var(--panel-bg); }
     th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; }
-    th { background: var(--head-bg); color: var(--head-text); position: sticky; top: -15px; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1);}
+    th { background: var(--head-bg); color: var(--head-text); position: sticky; top: -15px; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1); transition: background 0.3s;}
     
-    input[type="number"], input[type="text"] { 
-      padding: 10px; font-size: 1.1em; font-weight: bold; text-align: right; 
-      border: 2px solid #1a73e8; border-radius: 6px; background: var(--input-bg); color: var(--input-text); 
+    input[type="number"] { 
+      width: 180px; 
+      padding: 10px; 
+      font-size: 1.4em; 
+      font-weight: bold; 
+      text-align: right; 
+      border: 2px solid #1a73e8; 
+      border-radius: 6px; 
+      background: var(--input-bg);
+      color: var(--input-text);
+      transition: all 0.3s;
     }
-    .vol-input { width: 120px; font-size: 1.3em; }
     
-    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"]::-webkit-inner-spin-button, 
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type="number"] { -moz-appearance: textfield; }
     
-    .summary-box { background: var(--summary-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color); }
+    /* สไตล์สำหรับการแจ้งเตือนข้อมูลผิดปกติ (Meter ลดลง) */
+    .error-row { background-color: #fff0f0 !important; }
+    body.dark-mode .error-row { background-color: #3b1c1c !important; }
+    
+    .error-input { border: 2px solid #ff4d4d !important; background-color: #fff5f5 !important; color: #cc0000 !important; }
+    body.dark-mode .error-input { border: 2px solid #ff6b6b !important; background-color: #4a1c1c !important; color: #ff9999 !important; }
+    
+    option.opt-error { background-color: #ffe6e6; color: #cc0000; font-weight: bold; }
+    body.dark-mode option.opt-error { background-color: #3b1c1c; color: #ff9999; }
+
+    .summary-box { background: var(--summary-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color); transition: background 0.3s; }
     .summary-box table th { position: static; box-shadow: none; font-size: 1.1em;}
     
     .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
@@ -47,14 +86,13 @@
     .btn-dark { background: #444; color: white; border: 1px solid #666; }
     body.dark-mode .btn-dark { background: #f0c040; color: #333; border: none; }
     
-    select { padding: 10px; font-size: 16px; border-radius: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-color); }
-    #shiftSelector { width: 350px; }
+    select { padding: 10px; width: 350px; font-size: 16px; border-radius: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-color); }
   </style>
 </head>
 <body>
-  <div class="header-bar">
+  <div class="header-bar" id="mainHeader">
     <div>
-      <a href="index.html" style="text-decoration:none; font-weight:bold; color: var(--text-color); margin-right: 15px;">🏠 กลับหน้าสแกน</a>
+      <a href="index.html" style="text-decoration:none; font-weight:bold; color: var(--text-color); margin-right: 15px;">🏠 กลับหน้าอัปโหลด</a>
       <select id="shiftSelector" onchange="loadData()">
         <option value="">-- โหลดรายการ... --</option>
       </select>
@@ -71,14 +109,7 @@
       <iframe id="billFrame" style="display:none;"></iframe>
       <div id="noImg" style="margin-top: 50px; color: gray;"><b>📸 โปรดเลือกกะด้านบน</b></div>
     </div>
-    <div class="data-panel" id="dataPanel" style="display:none;">
-      
-      <div style="display:flex; gap:10px; margin-bottom:15px;">
-        <div><b>วันที่:</b> <input type="text" id="editDate" style="width:120px;"></div>
-        <div><b>เวลา:</b> <input type="text" id="editTime" style="width:100px;"></div>
-        <div><b>กะ:</b> <select id="editShift"><option value="เช้า">เช้า</option><option value="ดึก">ดึก</option></select></div>
-      </div>
-
+    <div class="data-panel">
       <div class="summary-box">
         <b style="font-size: 1.2em;">📊 สรุปยอดขาย (คำนวณเงินตามชนิดน้ำมัน)</b>
         <table style="margin-top:10px;">
@@ -110,6 +141,7 @@
   </div>
 
   <script>
+    // ⚠️ นำ Web App URL ของคุณมาใส่ตรงนี้
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec";
     let current = null;
 
@@ -126,15 +158,15 @@
         document.getElementById('btnDarkMode').innerText = "☀️ โหมดสว่าง";
       }
 
-      try {
-        const res = await (await fetch(API_URL + "?action=getShiftList")).json();
-        const sel = document.getElementById('shiftSelector');
-        sel.innerHTML = '<option value="">-- เลือกกะเพื่อตรวจสอบ --</option>';
-        if(res.status === "success") {
-          res.data.forEach(i => sel.add(new Option(i.label, i.id)));
-        }
-      } catch (err) {
-        document.getElementById('shiftSelector').innerHTML = '<option value="">❌ โหลดรายการไม่สำเร็จ</option>';
+      const res = await (await fetch(API_URL + "?action=getShiftList")).json();
+      const sel = document.getElementById('shiftSelector');
+      sel.innerHTML = '<option value="">-- เลือกกะเพื่อตรวจสอบ --</option>';
+      if(res.status === "success") {
+        res.data.forEach(i => {
+          let prefix = i.isError ? "⚠️ [ผิดปกติ] " : "📄 ";
+          let cssClass = i.isError ? "opt-error" : "";
+          sel.innerHTML += `<option value="${i.rowId}" class="${cssClass}">${prefix}${i.display}</option>`;
+        });
       }
     };
 
@@ -142,35 +174,32 @@
       const id = document.getElementById('shiftSelector').value;
       if(!id) { cancelEdit(); return; }
       
-      document.getElementById('dataPanel').style.display = 'block';
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="color:blue;">⏳ กำลังโหลดข้อมูล...</td></tr>';
+      // เปลี่ยนสี Header แจ้งเตือน
+      const selectedOption = document.querySelector(`#shiftSelector option[value="${id}"]`);
+      if (selectedOption.classList.contains('opt-error')) {
+        document.getElementById('mainHeader').classList.add('has-error');
+      } else {
+        document.getElementById('mainHeader').classList.remove('has-error');
+      }
+
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">กำลังโหลดข้อมูล...</td></tr>';
       document.getElementById('btnSave').disabled = true;
 
-      try {
-        const res = await (await fetch(API_URL + `?action=getVerificationData&rowId=${id}`)).json();
-        if(res.status === "success") {
-          current = res.data;
-          
-          document.getElementById('editDate').value = current.date;
-          document.getElementById('editTime').value = current.time;
-          document.getElementById('editShift').value = current.shift;
-          
-          render();
-          
-          const frame = document.getElementById('billFrame');
-          const match = current.imageUrl ? current.imageUrl.match(/[-\w]{25,}/) : null;
-          if(match) { 
-            frame.src = `https://drive.google.com/file/d/${match[0]}/preview`; 
-            frame.style.display = 'block'; document.getElementById('noImg').style.display = 'none'; 
-          } else { 
-            frame.style.display = 'none'; document.getElementById('noImg').style.display = 'block'; 
-          }
-          document.getElementById('btnSave').disabled = false;
-        } else {
-          throw new Error(res.message);
+      const res = await (await fetch(API_URL + `?action=getVerificationData&rowId=${id}`)).json();
+      if(res.status === "success") {
+        current = res.data;
+        render();
+        const frame = document.getElementById('billFrame');
+        const match = current.imageUrl.match(/[-\w]{25,}/);
+        if(match) { 
+          frame.src = `https://drive.google.com/file/d/${match[0]}/preview`; 
+          frame.style.display = 'block'; 
+          document.getElementById('noImg').style.display = 'none'; 
+        } else { 
+          frame.style.display = 'none'; 
+          document.getElementById('noImg').style.display = 'block'; 
         }
-      } catch (err) {
-        document.getElementById('tableBody').innerHTML = `<tr><td colspan="6" style="color:red;">❌ เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+        document.getElementById('btnSave').disabled = false;
       }
     }
 
@@ -178,15 +207,20 @@
       const body = document.getElementById('tableBody');
       body.innerHTML = '';
       for(let i=0; i<36; i++){
-        let p = parseFloat(current.prevData[i]) || 0;
+        let p = parseFloat(current.prevData[i])||0;
         let c = current.currData[i] !== "" ? parseFloat(current.currData[i]) : 0;
         
-        body.innerHTML += `<tr>
+        // ตรวจสอบความผิดปกติ (Meter ลดลง)
+        let isCellError = (c < p && current.currData[i] !== "");
+        let inputClass = isCellError ? 'class="error-input"' : '';
+        let rowClass = isCellError ? 'class="error-row"' : '';
+
+        body.innerHTML += `<tr ${rowClass}>
           <td style="font-weight:bold; color:var(--text-color); font-size:1.1em;">${current.headers.h3[i] || "-"}</td>
           <td>${current.headers.h2[i] || "-"}</td>
           <td>${current.headers.h1[i] || "-"}</td>
           <td style="font-size:1.1em;">${p.toLocaleString(undefined,{minimumFractionDigits:3})}</td>
-          <td><input type="number" step="any" inputmode="decimal" class="vol-input" id="curr_${i}" value="${c}" oninput="calc()"></td>
+          <td><input type="number" step="any" inputmode="decimal" id="curr_${i}" value="${c}" oninput="calc()" ${inputClass}></td>
           <td id="diff_${i}" style="font-weight:bold; color: #1a73e8; font-size:1.2em;">0</td>
         </tr>`;
       }
@@ -195,17 +229,33 @@
       document.getElementById('sumBody').innerHTML = unique.map((g, i) => `<tr>
         <td style="font-weight:bold; color:var(--text-color);">${g}</td>
         <td id="sv_${i}" style="font-size:1.2em;">0.000</td>
-        <td><input type="number" step="any" inputmode="decimal" style="width:120px;" class="summary-price-input" data-group="${g}" value="${current.prices[g]||0}" oninput="calc()"></td>
+        <td><input type="number" step="any" inputmode="decimal" style="width:120px; font-size:1.1em;" class="summary-price-input" data-group="${g}" value="${current.prices[g]||0}" oninput="calc()"></td>
         <td id="sa_${i}" style="font-size:1.2em; font-weight:bold;">0.00</td>
       </tr>`).join('');
+      
       calc();
     }
 
     function calc() {
       let gTot = {}, grand = 0;
       for(let i=0; i<36; i++){
-        let d = Math.max(0, (parseFloat(document.getElementById('curr_'+i).value)||0) - (parseFloat(current.prevData[i])||0));
+        let p = parseFloat(current.prevData[i])||0;
+        let c = parseFloat(document.getElementById('curr_'+i).value)||0;
+        
+        // ตรวจจับแก้ไข Real-time: ถ้าค่าที่แก้ทำให้กลับมาปกติ (ไม่ลดลง) ให้ลบกรอบสีแดงออก
+        let inputEl = document.getElementById('curr_'+i);
+        let trEl = inputEl.closest('tr');
+        if (c >= p || inputEl.value === "") {
+          inputEl.classList.remove('error-input');
+          trEl.classList.remove('error-row');
+        } else {
+          inputEl.classList.add('error-input');
+          trEl.classList.add('error-row');
+        }
+
+        let d = Math.max(0, c - p);
         document.getElementById('diff_'+i).innerText = d.toLocaleString(undefined,{minimumFractionDigits:3});
+        
         let g = current.headers.h3[i];
         if(g !== "-" && g !== "") gTot[g] = (gTot[g]||0) + d;
       }
@@ -228,31 +278,25 @@
         let val = document.getElementById('curr_'+i).value;
         vs.push(val === "" ? "" : parseFloat(val));
       }
+      
       document.querySelectorAll('.summary-price-input').forEach(i => ps[i.dataset.group] = parseFloat(i.value)||0);
       
-      const payload = { 
-        action: "saveEditedData", 
-        rowId: document.getElementById('shiftSelector').value, 
-        date: document.getElementById('editDate').value,
-        time: document.getElementById('editTime').value,
-        shift: document.getElementById('editShift').value,
-        volumes: vs, 
-        prices: ps 
-      };
-
       try {
-        const res = await (await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })).json();
-        if(res.status === "success") { alert("✅ บันทึกข้อมูลสำเร็จ"); } 
-        else { alert("❌ " + res.message); }
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "saveEditedData", rowId: document.getElementById('shiftSelector').value, volumes: vs, prices: ps }) });
+        alert("✅ บันทึกข้อมูลสำเร็จ"); 
       } catch (e) {
         alert("❌ เชื่อมต่อล้มเหลว");
       }
+      
       btn.disabled = false; btn.innerText = '💾 บันทึก';
     }
 
     function cancelEdit() {
       document.getElementById('shiftSelector').value = "";
-      document.getElementById('dataPanel').style.display = 'none';
+      document.getElementById('mainHeader').classList.remove('has-error');
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="6"></td></tr>';
+      document.getElementById('sumBody').innerHTML = '';
+      document.getElementById('grandTotal').innerText = '0.00';
       document.getElementById('billFrame').style.display = 'none';
       document.getElementById('noImg').style.display = 'block';
       document.getElementById('btnSave').disabled = true;
