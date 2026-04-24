@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.12</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.13</title>
   <style>
     /* ตั้งค่าตัวแปรสีสำหรับ Light/Dark Mode */
     :root {
@@ -72,6 +72,13 @@
     body.dark-mode .btn-dark { background: #f0c040; color: #333; border: none; }
     
     select { padding: 10px; width: 300px; font-size: 16px; border-radius: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-color); }
+
+/* CSS สำหรับแจ้งเตือนแบบช่องว่าง */
+    option.opt-blank { background-color: #fff3cd; color: #856404; font-weight: bold; }
+    body.dark-mode option.opt-blank { background-color: #4d4013; color: #ffeb8a; }
+    .header-bar.has-blank { background-color: #fff3cd; border-bottom: 3px solid #ffc107; }
+    body.dark-mode .header-bar.has-blank { background-color: #4d4013; border-bottom: 3px solid #ffc107; }
+    
   </style>
 </head>
 <body>
@@ -136,7 +143,7 @@
       document.getElementById('btnDarkMode').innerText = isDark ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด";
     }
 
-    async function loadShiftList() {
+async function loadShiftList() {
       const sel = document.getElementById('shiftSelector');
       const currentSelected = sel.value; 
       try {
@@ -144,8 +151,20 @@
         if(res.status === "success") {
           sel.innerHTML = '<option value="">-- เลือกกะเพื่อตรวจสอบ --</option>';
           res.data.forEach(i => {
-            let prefix = i.isError ? "⚠️ [ผิดปกติ] " : "📄 ";
-            let cssClass = i.isError ? "opt-error" : "";
+            let markers = [];
+            let cssClass = "";
+
+            // 💡 แยกระบบแจ้งเตือน 2 แบบ
+            if (i.isError) {
+              markers.push("⚠️ [ค่าลดลง]");
+              cssClass = "opt-error";
+            }
+            if (i.hasBlank) {
+              markers.push("🔲 [ช่องว่าง]");
+              if (!cssClass) cssClass = "opt-blank"; // ถ้าไม่มี Error ให้ใช้สีเหลือง
+            }
+
+            let prefix = markers.length > 0 ? markers.join(" ") + " " : "📄 ";
             sel.innerHTML += `<option value="${i.rowId}" class="${cssClass}">${prefix}${i.display}</option>`;
           });
           if (currentSelected) sel.value = currentSelected;
@@ -153,23 +172,18 @@
       } catch (e) { console.error("โหลดรายการไม่สำเร็จ"); }
     }
 
-    window.onload = async () => {
-      if (localStorage.getItem('klong3_darkmode') === 'true') {
-        document.body.classList.add('dark-mode');
-        document.getElementById('btnDarkMode').innerText = "☀️ โหมดสว่าง";
-      }
-      await loadShiftList();
-    };
-
     async function loadData() {
       const id = document.getElementById('shiftSelector').value;
       if(!id) { cancelEdit(); return; }
       
+      // 💡 อัปเดตสี Header บาร์ด้านบน ตามปัญหาที่พบ
       const selectedOption = document.querySelector(`#shiftSelector option[value="${id}"]`);
-      if (selectedOption && selectedOption.classList.contains('opt-error')) {
-        document.getElementById('mainHeader').classList.add('has-error');
-      } else {
-        document.getElementById('mainHeader').classList.remove('has-error');
+      const headerBar = document.getElementById('mainHeader');
+      headerBar.classList.remove('has-error', 'has-blank');
+      
+      if (selectedOption) {
+        if (selectedOption.classList.contains('opt-error')) headerBar.classList.add('has-error');
+        else if (selectedOption.classList.contains('opt-blank')) headerBar.classList.add('has-blank');
       }
 
       document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">กำลังโหลดข้อมูล...</td></tr>';
@@ -194,7 +208,7 @@
         }
       } catch (e) { alert("ดึงข้อมูลไม่สำเร็จ"); }
     }
-
+    
     function render() {
       const body = document.getElementById('tableBody');
       body.innerHTML = '';
