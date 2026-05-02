@@ -293,7 +293,7 @@
       calc();
     }
 
-    function calc() {
+ function calc() {
       let gTot = {}, grand = 0;
       for(let i=0; i<36; i++){
         let p = parseFloat(current.prevData[i])||0;
@@ -313,7 +313,7 @@
         }
 
         let d = Math.max(0, c - p);
-        document.getElementById('diff_'+i).innerText = d.toLocaleString('en-US',{minimumFractionDigits:3});
+        document.getElementById('diff_'+i).innerText = d.toLocaleString('en-US',{minimumFractionDigits:3, maximumFractionDigits:3});
         
         let g = current.headers.h3[i];
         if(g !== "-" && g !== "") gTot[g] = (gTot[g]||0) + d;
@@ -321,13 +321,17 @@
 
       document.querySelectorAll('.summary-price-input').forEach((inp, i) => {
         let v = gTot[inp.dataset.group]||0, prc = parseFloat(inp.value)||0, a = v*prc;
-        document.getElementById('sv_'+i).innerText = v.toLocaleString('en-US',{minimumFractionDigits:3});
-        document.getElementById('sa_'+i).innerText = a.toLocaleString('en-US',{minimumFractionDigits:2});
+        document.getElementById('sv_'+i).innerText = v.toLocaleString('en-US',{minimumFractionDigits:3, maximumFractionDigits:3});
+        
+        // 💡 บังคับจำนวนเงินแต่ละชนิดให้มีทศนิยม 2 ตำแหน่งเท่านั้น
+        document.getElementById('sa_'+i).innerText = a.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
         grand += a;
       });
-      document.getElementById('grandTotal').innerText = grand.toLocaleString('en-US',{minimumFractionDigits:2});
+      
+      // 💡 บังคับยอดรวมสุทธิให้มีทศนิยม 2 ตำแหน่งเท่านั้น
+      document.getElementById('grandTotal').innerText = grand.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
     }
-
+	
     async function saveData() {
       const btn = document.getElementById('btnSave');
       const id = document.getElementById('shiftSelector').value;
