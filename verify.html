@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.14</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.09</title>
   <style>
     /* ตั้งค่าตัวแปรสีสำหรับ Light/Dark Mode */
     :root {
@@ -36,7 +36,6 @@
     
     .header-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.3s; }
     
-    /* สีของ Header เมื่อมี Error หรือ ช่องว่าง */
     .header-bar.has-error { background-color: #fff0f0; border-bottom: 3px solid #ff4d4d; }
     body.dark-mode .header-bar.has-error { background-color: #4a1c1c; border-bottom: 3px solid #ff6b6b; }
     .header-bar.has-blank { background-color: #fff3cd; border-bottom: 3px solid #ffc107; }
@@ -53,7 +52,8 @@
     th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; }
     th { background: var(--head-bg); color: var(--head-text); position: sticky; top: -15px; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1); transition: background 0.3s;}
     
-    input[type="number"] { 
+    /* 💡 เปลี่ยนจากการเจาะจง type="number" เป็นใช้ Class .num-input แทน */
+    .num-input { 
       width: 180px; 
       padding: 10px; 
       font-size: 1.4em; 
@@ -66,11 +66,9 @@
       transition: all 0.3s;
     }
     
-    input[type="number"]::-webkit-inner-spin-button, 
-    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type="number"] { -moz-appearance: textfield; }
+    .num-input::-webkit-inner-spin-button, 
+    .num-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     
-    /* สไตล์สำหรับการแจ้งเตือน */
     .error-row { background-color: #fff0f0 !important; }
     body.dark-mode .error-row { background-color: #3b1c1c !important; }
     
@@ -158,6 +156,25 @@
       document.getElementById('btnDarkMode').innerText = isDark ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด";
     }
 
+    // 💡 ฟังก์ชันเอา Comma ออกตอนคลิกเข้าไปพิมพ์ (Focus)
+    function removeCommas(el) {
+      if(el.value !== "") {
+        el.value = el.value.replace(/,/g, '');
+      }
+    }
+
+    // 💡 ฟังก์ชันใส่ Comma คืนตอนพิมพ์เสร็จแล้วกดที่อื่น (Blur)
+    function addCommas(el) {
+      if(el.value !== "") {
+        let num = parseFloat(el.value.replace(/,/g, ''));
+        if(!isNaN(num)) {
+          // แปลงกลับเป็นตัวเลขทศนิยม 3 ตำแหน่ง พร้อมคั่นลูกน้ำ
+          el.value = num.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+        }
+      }
+      calc(); // คำนวณใหม่เพื่อความชัวร์
+    }
+
     async function loadShiftList() {
       const sel = document.getElementById('shiftSelector');
       const currentSelected = sel.value; 
@@ -242,17 +259,19 @@
         let c = cRaw !== "" ? parseFloat(cRaw) : 0;
         
         let isCellError = (c < p && cRaw !== "") || (cRaw === "");
-        let inputClass = isCellError ? 'class="error-input"' : '';
+        let inputClass = isCellError ? 'class="error-input num-input"' : 'class="num-input"';
         let rowClass = isCellError ? 'class="error-row"' : '';
 
-        let displayVal = cRaw === "" ? "" : c;
+        // 💡 แปลงตัวเลขให้มีลูกน้ำ 3 ตำแหน่ง ตั้งแต่ตอนโหลดแสดงผลครั้งแรก
+        let displayVal = cRaw === "" ? "" : c.toLocaleString('en-US', {minimumFractionDigits:3, maximumFractionDigits:3});
 
+        // 💡 เปลี่ยนจาก type="number" เป็น type="text" และเพิ่ม onfocus / onblur
         body.innerHTML += `<tr ${rowClass}>
           <td style="font-weight:bold; color:var(--text-color); font-size:1.1em;">${current.headers.h3[i] || "-"}</td>
           <td>${current.headers.h2[i] || "-"}</td>
           <td>${current.headers.h1[i] || "-"}</td>
-          <td style="font-size:1.1em;">${p.toLocaleString(undefined,{minimumFractionDigits:3})}</td>
-          <td><input type="number" step="any" inputmode="decimal" id="curr_${i}" value="${displayVal}" oninput="calc()" ${inputClass}></td>
+          <td style="font-size:1.1em;">${p.toLocaleString('en-US',{minimumFractionDigits:3})}</td>
+          <td><input type="text" inputmode="decimal" id="curr_${i}" value="${displayVal}" onfocus="removeCommas(this)" onblur="addCommas(this)" oninput="calc()" ${inputClass}></td>
           <td id="diff_${i}" style="font-weight:bold; color: #1a73e8; font-size:1.2em;">0</td>
         </tr>`;
       }
@@ -261,7 +280,7 @@
       document.getElementById('sumBody').innerHTML = unique.map((g, i) => `<tr>
         <td style="font-weight:bold; color:var(--text-color);">${g}</td>
         <td id="sv_${i}" style="font-size:1.2em;">0.000</td>
-        <td><input type="number" step="any" inputmode="decimal" style="width:120px; font-size:1.1em;" class="summary-price-input" data-group="${g}" value="${current.prices[g]||0}" oninput="calc()"></td>
+        <td><input type="number" step="any" inputmode="decimal" style="width:120px; font-size:1.1em;" class="summary-price-input num-input" data-group="${g}" value="${current.prices[g]||0}" oninput="calc()"></td>
         <td id="sa_${i}" style="font-size:1.2em; font-weight:bold;">0.00</td>
       </tr>`).join('');
       
@@ -272,7 +291,9 @@
       let gTot = {}, grand = 0;
       for(let i=0; i<36; i++){
         let p = parseFloat(current.prevData[i])||0;
-        let cRaw = document.getElementById('curr_'+i).value;
+        
+        // 💡 ก่อนคำนวณ ต้องเอาลูกน้ำออกก่อน
+        let cRaw = document.getElementById('curr_'+i).value.replace(/,/g, '');
         let c = parseFloat(cRaw)||0;
         
         let inputEl = document.getElementById('curr_'+i);
@@ -287,7 +308,7 @@
         }
 
         let d = Math.max(0, c - p);
-        document.getElementById('diff_'+i).innerText = d.toLocaleString(undefined,{minimumFractionDigits:3});
+        document.getElementById('diff_'+i).innerText = d.toLocaleString('en-US',{minimumFractionDigits:3});
         
         let g = current.headers.h3[i];
         if(g !== "-" && g !== "") gTot[g] = (gTot[g]||0) + d;
@@ -295,11 +316,11 @@
 
       document.querySelectorAll('.summary-price-input').forEach((inp, i) => {
         let v = gTot[inp.dataset.group]||0, prc = parseFloat(inp.value)||0, a = v*prc;
-        document.getElementById('sv_'+i).innerText = v.toLocaleString(undefined,{minimumFractionDigits:3});
-        document.getElementById('sa_'+i).innerText = a.toLocaleString(undefined,{minimumFractionDigits:2});
+        document.getElementById('sv_'+i).innerText = v.toLocaleString('en-US',{minimumFractionDigits:3});
+        document.getElementById('sa_'+i).innerText = a.toLocaleString('en-US',{minimumFractionDigits:2});
         grand += a;
       });
-      document.getElementById('grandTotal').innerText = grand.toLocaleString(undefined,{minimumFractionDigits:2});
+      document.getElementById('grandTotal').innerText = grand.toLocaleString('en-US',{minimumFractionDigits:2});
     }
 
     async function saveData() {
@@ -311,7 +332,8 @@
       let vs = [], ps = {};
       
       for(let i=0; i<36; i++) {
-        let val = document.getElementById('curr_'+i).value;
+        // 💡 เอาลูกน้ำออกก่อนส่งไปเซฟลง Google Sheets ป้องกัน Error
+        let val = document.getElementById('curr_'+i).value.replace(/,/g, '');
         vs.push(val === "" ? "" : parseFloat(val));
       }
       
