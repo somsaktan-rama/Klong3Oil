@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.09</title>
+  <title>ตรวจสอบบิลส่งกะ คลอง 3 V.1.10</title>
   <style>
     /* ตั้งค่าตัวแปรสีสำหรับ Light/Dark Mode */
     :root {
@@ -144,7 +144,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     // ⚠️ นำ Web App URL ของคุณมาใส่ตรงนี้
     const API_URL = "https://script.google.com/macros/s/AKfycbxnCwbzrlgc6RDOVJE2dKIfO70AZye0F1TUCUPAGSxRH1WkfaVMHjACUjUl2HQfCN0/exec";
     let current = null;
@@ -156,23 +156,20 @@
       document.getElementById('btnDarkMode').innerText = isDark ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด";
     }
 
-    // 💡 ฟังก์ชันเอา Comma ออกตอนคลิกเข้าไปพิมพ์ (Focus)
     function removeCommas(el) {
       if(el.value !== "") {
         el.value = el.value.replace(/,/g, '');
       }
     }
 
-    // 💡 ฟังก์ชันใส่ Comma คืนตอนพิมพ์เสร็จแล้วกดที่อื่น (Blur)
     function addCommas(el) {
       if(el.value !== "") {
         let num = parseFloat(el.value.replace(/,/g, ''));
         if(!isNaN(num)) {
-          // แปลงกลับเป็นตัวเลขทศนิยม 3 ตำแหน่ง พร้อมคั่นลูกน้ำ
           el.value = num.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
         }
       }
-      calc(); // คำนวณใหม่เพื่อความชัวร์
+      calc();
     }
 
     async function loadShiftList() {
@@ -262,10 +259,8 @@
         let inputClass = isCellError ? 'class="error-input num-input"' : 'class="num-input"';
         let rowClass = isCellError ? 'class="error-row"' : '';
 
-        // 💡 แปลงตัวเลขให้มีลูกน้ำ 3 ตำแหน่ง ตั้งแต่ตอนโหลดแสดงผลครั้งแรก
         let displayVal = cRaw === "" ? "" : c.toLocaleString('en-US', {minimumFractionDigits:3, maximumFractionDigits:3});
 
-        // 💡 เปลี่ยนจาก type="number" เป็น type="text" และเพิ่ม onfocus / onblur
         body.innerHTML += `<tr ${rowClass}>
           <td style="font-weight:bold; color:var(--text-color); font-size:1.1em;">${current.headers.h3[i] || "-"}</td>
           <td>${current.headers.h2[i] || "-"}</td>
@@ -276,7 +271,18 @@
         </tr>`;
       }
 
-      const unique = [...new Set(current.headers.h3.filter(g => g !== "-" && g !== ""))];
+      // 💡 ดึงชนิดน้ำมันและจัดการเรียงลำดับใหม่ (Custom Sort)
+      let rawUnique = [...new Set(current.headers.h3.filter(g => g !== "-" && g !== ""))];
+      const customOrder = ["GLD", "DI", "E20", "G91", "G95", "PDI"];
+      
+      const unique = rawUnique.sort((a, b) => {
+        let idxA = customOrder.indexOf(a);
+        let idxB = customOrder.indexOf(b);
+        if (idxA === -1) idxA = 999; // ถ้าไม่ตรงลิสต์ ให้ไปอยู่ท้ายสุด
+        if (idxB === -1) idxB = 999;
+        return idxA - idxB;
+      });
+
       document.getElementById('sumBody').innerHTML = unique.map((g, i) => `<tr>
         <td style="font-weight:bold; color:var(--text-color);">${g}</td>
         <td id="sv_${i}" style="font-size:1.2em;">0.000</td>
@@ -292,7 +298,6 @@
       for(let i=0; i<36; i++){
         let p = parseFloat(current.prevData[i])||0;
         
-        // 💡 ก่อนคำนวณ ต้องเอาลูกน้ำออกก่อน
         let cRaw = document.getElementById('curr_'+i).value.replace(/,/g, '');
         let c = parseFloat(cRaw)||0;
         
@@ -332,7 +337,6 @@
       let vs = [], ps = {};
       
       for(let i=0; i<36; i++) {
-        // 💡 เอาลูกน้ำออกก่อนส่งไปเซฟลง Google Sheets ป้องกัน Error
         let val = document.getElementById('curr_'+i).value.replace(/,/g, '');
         vs.push(val === "" ? "" : parseFloat(val));
       }
